@@ -38,7 +38,7 @@ import {
 // } from "lucide-react";
 // 统计数据
 const stats = [
-  { title: "DM币", value: "42", change: "+5", color: "primary" },
+  { title: "DM币", value: "4200", change: "+5", color: "primary" },
   { title: "USDT", value: "128", change: "+18", color: "success" },
   { title: "总投资", value: "3,425", change: "+120", color: "warning" },
   { title: "总收益", value: "87%", change: "-2%", color: "secondary" },
