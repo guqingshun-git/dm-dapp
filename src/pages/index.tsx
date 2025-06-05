@@ -8,6 +8,7 @@ import { Button } from "@heroui/button";
 import { User } from "@heroui/user";
 // import { Chip } from "@heroui/chip";
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { AuthButton } from '@/components/AuthButton'; // 改为使用useAuth钩子
 import {
   SunMoon, Languages
 } from "lucide-react";
@@ -91,7 +92,9 @@ export default function IndexPage() {
             <span className={title({ color: "violet" })}>TF-RWA&nbsp;</span>
             {/* 右侧按钮组 */}
             <div className="flex gap-3 ml-auto">
-            <ConnectButton />
+            <AuthButton></AuthButton>
+            {/* <ConnectButton chainStatus="icon" label="Sign in"/> */}
+            
               <Button isIconOnly aria-label="Like" color="danger">
                 <SunMoon />
               </Button>

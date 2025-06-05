@@ -9,8 +9,8 @@ declare module "@react-types/shared" {
   }
 }
 
-
 import '@rainbow-me/rainbowkit/styles.css';
+import { AuthProvider } from '@/providers/AuthProvider';
 import {
   getDefaultConfig,
   RainbowKitProvider,
@@ -36,6 +36,7 @@ import {
 // );
 import { WagmiProvider } from 'wagmi';
 import {
+  bsc,
   mainnet,
   polygon,
   optimism,
@@ -50,7 +51,7 @@ import {
 const config = getDefaultConfig({
   appName: 'phantomBloc',
   projectId: 'b5284eec2e9a2a680e1d7a86da84c5e0',
-  chains: [mainnet, polygon, optimism, arbitrum, base],
+  chains: [bsc, mainnet, polygon, optimism, arbitrum, base],
   ssr: true, // If your dApp uses server side rendering (SSR)
   wallets: [
     {
@@ -66,14 +67,16 @@ export function Provider({ children }: { children: React.ReactNode }) {
 
   return (
     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>
-          {/* Your App */}
-          <HeroUIProvider navigate={navigate} useHref={useHref}>
-            {children}
-          </HeroUIProvider>
-        </RainbowKitProvider>
-      </QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+            <RainbowKitProvider coolMode>
+            <AuthProvider> {/* 注入自定义认证状态 */}
+              {/* Your App */}
+              <HeroUIProvider navigate={navigate} useHref={useHref}>
+                {children}
+              </HeroUIProvider>
+              </AuthProvider>
+            </RainbowKitProvider>
+        </QueryClientProvider>
     </WagmiProvider>
   );
 }

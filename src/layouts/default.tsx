@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Navbar } from "@/components/navbar";
 import { useEffect } from 'react';
 import { useAccount } from 'wagmi';
+// import { ConnectButton } from '@rainbow-me/rainbowkit';
 function WalletStatusListener() {
   const { 
     address, 
@@ -16,7 +17,6 @@ function WalletStatusListener() {
     console.log(`钱包连接状态变化: ${status}`);
     
     if (isConnected) {
-      console.log(`已连接钱包: ${address}`);
       console.log(`已连接钱包: ${address}`);
       // 执行连接成功后的操作，如获取用户信息
     }
