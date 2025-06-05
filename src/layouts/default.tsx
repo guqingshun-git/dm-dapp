@@ -17,6 +17,7 @@ function WalletStatusListener() {
     
     if (isConnected) {
       console.log(`已连接钱包: ${address}`);
+      console.log(`已连接钱包: ${address}`);
       // 执行连接成功后的操作，如获取用户信息
     }
     
