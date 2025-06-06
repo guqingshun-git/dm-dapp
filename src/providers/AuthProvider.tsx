@@ -14,7 +14,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { address, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const [session, setSession] = useState<{ address?: string }>({});
-
+  
   // 在TP钱包中自动连接并验证
   useEffect(() => {
     // 检测到钱包连接且尚未验证时自动触发
@@ -27,13 +27,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!address) return;
 
     try {
+      // 获取当前链ID（动态适配）
+      const { chain } = useAccount(); // 新增此行 ⚡
       const nonceResponse = await fetch('/api/nonce');
       const { nonce } = await nonceResponse.json();
 
       const message = createSiweMessage({
         address,
-        statement: "登录 HeroUI 应用",
-        chainId: 1,
+        statement: "登录 DMAPP 应用",
+        chainId: chain?.id || 56, // 修改此处 ✅ 动态获取或默认BSC链ID
         domain: window.location.host,
         nonce,
         uri: window.location.origin,

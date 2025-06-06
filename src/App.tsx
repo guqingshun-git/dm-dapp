@@ -13,19 +13,23 @@ import PledgePage from "@/pages/pledge";
 function App() {
   return (
     <Routes>
-      <Route element={<AuthRoute>
-        <IndexPage />
-      </AuthRoute>} path="/" />
-      <Route element={<AuthRoute><TeamPage /></AuthRoute>} path="/team" />
-      <Route element={<AuthRoute><WalletPage /></AuthRoute>} path="/wallet" />
-      <Route element={<AuthRoute><PledgePage /></AuthRoute>} path="/pledge" />
-      <Route element={<AuthRoute><ProfilePage /></AuthRoute>} path="/profile" />
-      <Route element={<DocsPage />} path="/docs" />
-      <Route element={<PricingPage />} path="/pricing" />
-      <Route element={<BlogPage />} path="/blog" />
-      <Route element={<AboutPage />} path="/about" />
+    {/* 使用 AuthRoute 的正确方式 */}
+    <Route element={<AuthRoute />}>
+      <Route path="team" element={<TeamPage />} />
+      <Route path="wallet" element={<WalletPage />} />
+      <Route path="pledge" element={<PledgePage />} />
+      <Route path="profile" element={<ProfilePage />} />
+    </Route>
+    
+    {/* 公开路由 */}
+    <Route index element={<IndexPage />} />
+    <Route path="docs" element={<DocsPage />} />
+    <Route path="pricing" element={<PricingPage />} />
+    <Route path="blog" element={<BlogPage />} />
+    <Route path="about" element={<AboutPage />} />
+  </Routes>
 
-    </Routes>
+
   );
 }
 

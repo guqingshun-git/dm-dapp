@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/navbar";
 import { useEffect } from 'react';
 import { useAccount } from 'wagmi';
@@ -40,8 +40,18 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function DefaultLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const navigate = useNavigate(); // 添加导航钩子
   const hideNavbarPaths = ["/","/team","/wallet","/profile"];
-  
+   // 获取当前激活标签（排除AuthRoute的干扰）
+  //  const getActiveTab = () => {
+  //   const path = location.pathname;
+  //   return tabs.some(tab => tab.path === path) ? path : "/";
+  // };
+
+  // 处理标签点击
+  const handleTabClick = (path: string) => {
+    navigate(path);
+  };
   // 简化后的选项卡配置
   const tabs = [
     { 
@@ -106,9 +116,9 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
           {tabs.map((tab) => {
             const isActive = activeTab === tab.path;
             return (
-              <Link
+              <div
+                onClick={() => handleTabClick(tab.path)}
                 key={tab.path}
-                to={tab.path}
                 className={`flex-1 flex flex-col items-center justify-center py-4 transition-all ${
                   isActive 
                     ? "text-purple-600 dark:text-purple-400 font-bold" 
@@ -154,7 +164,7 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
                 >
                   {tab.label}
                 </motion.span> */}
-              </Link>
+              </div>
             );
           })}
         </div>
