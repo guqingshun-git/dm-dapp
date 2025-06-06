@@ -7,8 +7,6 @@ import { Image } from "@heroui/image";
 import { Button } from "@heroui/button";
 import { User } from "@heroui/user";
 // import { Chip } from "@heroui/chip";
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { AuthButton } from '@/components/AuthButton'; // 改为使用useAuth钩子
 import {
   SunMoon, Languages
 } from "lucide-react";
