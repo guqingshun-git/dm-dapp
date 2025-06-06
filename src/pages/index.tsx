@@ -6,6 +6,7 @@ import { Link } from "@heroui/link";
 import { Image } from "@heroui/image";
 import { Button } from "@heroui/button";
 import { User } from "@heroui/user";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 // import { Chip } from "@heroui/chip";
 import {
   SunMoon, Languages
@@ -92,7 +93,7 @@ export default function IndexPage() {
             {/* 右侧按钮组 */}
             <div className="flex gap-3 ml-auto">
             {/* <AuthButton></AuthButton> */}
-            {/* <ConnectButton chainStatus="icon" label="Sign in"/> */}
+            <ConnectButton chainStatus="icon" label="Sign in"/>
             
               <Button isIconOnly aria-label="Like" color="danger">
                 <SunMoon />
