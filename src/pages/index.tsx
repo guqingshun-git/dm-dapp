@@ -70,6 +70,7 @@ export const orders = [
 //   paused: "danger",
 //   vacation: "warning",
 // };
+
 export default function IndexPage() {
   return (
     <DefaultLayout>
@@ -92,7 +93,7 @@ export default function IndexPage() {
             <span className={title({ color: "violet" })}>TF-RWA&nbsp;</span>
             {/* 右侧按钮组 */}
             <div className="flex gap-3 ml-auto">
-            <AuthButton></AuthButton>
+            {/* <AuthButton></AuthButton> */}
             {/* <ConnectButton chainStatus="icon" label="Sign in"/> */}
             
               <Button isIconOnly aria-label="Like" color="danger">
