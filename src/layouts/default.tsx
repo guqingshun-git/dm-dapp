@@ -65,7 +65,15 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
   const activeTab = location.pathname;
 
   return (
-    <div className="relative flex flex-col h-screen bg-[#000040] dark:bg-gray-100">
+    <div className="relative flex flex-col h-screen bg-[#000040] dark:bg-gray-100"
+    style={{
+      backgroundImage: "url('/bg.jpeg')", // 确保图片在public目录
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundAttachment: "fixed",
+      backgroundRepeat: "no-repeat"
+    }}
+    >
       {!hideNavbarPaths.includes(location.pathname) && <Navbar />}
       
       <main className="container mx-auto max-w-7xl flex-grow">
