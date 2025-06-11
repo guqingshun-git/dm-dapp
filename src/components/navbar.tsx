@@ -2,7 +2,7 @@
 // import { Kbd } from "@heroui/kbd";
 import { Link } from "@heroui/link";
 // import { Input } from "@heroui/input";
-// import { title, subtitle } from "@/components/primitives";
+import { title } from "@/components/primitives";
 import {
   Navbar as HeroUINavbar,
   NavbarBrand,
@@ -31,11 +31,11 @@ export const Navbar = () => {
             href="/"
           >
             {/* <Logo /> */}
-            <img src="/vite.svg" />
-            {/* <span className={title({ color: "violet" })}>TF-RWA&nbsp;</span> */}
-            <p className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600">
+            <img src="/logo.png" className="w-12"/>
+            <span className={title({ color: "violet" })}>TF-RWA&nbsp;</span>
+            {/* <p className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600">
   TF-RWA
-</p>
+</p> */}
           </Link>
         </NavbarBrand>
         

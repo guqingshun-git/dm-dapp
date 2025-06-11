@@ -1,60 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import apiClient from "@/api";
+import { useAccount } from 'wagmi'
+import { useContractCall } from "@/hooks/useContractCall";;
+import { DM_CONTRACT } from "@/contracts/dmContract";
+
 // import { title } from "@/components/primitives";
 import DefaultLayout from "@/layouts/default";
 import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Avatar } from "@heroui/avatar";
 // import { Link } from "@heroui/link";
-import { Button } from "@heroui/button";
-
+// import { Button } from "@heroui/button";
 import { Chip } from "@heroui/chip";
 import { Listbox, ListboxItem } from "@heroui/listbox";
-
-// 导入所有需要的Lucide图标
+import { Switch } from "@heroui/switch";
+import { Slider } from "@heroui/slider";
 import {
-  Bug as BugIcon,
-  GitPullRequest as PullRequestIcon,
-  MessageSquare as ChatIcon,
-  PlayCircle as PlayCircleIcon,
-  Layout as LayoutIcon,
-  Tag as TagIcon,
-  Users as UsersIcon,
-  Eye as EyeIcon, // Watchers图标
-  Book as BookIcon,
-  // Shield as ShieldIcon,
-  // Key as KeyIcon,
-  // Bell as BellIcon,
-  // CreditCard as CreditCardIcon,
-  // Lock as LockIcon,
-  // ShoppingBag as ShoppingBagIcon,
-  // Star as StarIcon,
-  // Settings as SettingsIcon,
-  // LogOut as LogOutIcon
+  ShoppingBag as ShoppingBagIcon,
+  Headphones as HeadphonesIcon,
+  Key as KeyIcon,
+  Network as NodeIcon,
+  ShoppingCart as OrderIcon,
+  ChevronRight as RightIcon,
+  Ticket as TicketIcon,
+  Shield as ShieldIcon,
+  LogOut as LogOutIcon,
+  Wallet as WalletIcon
 } from "lucide-react";
-
-// 为没有直接对应图标的功能添加占位图标
-// import {
-//   Globe as RegionIcon, // 大区图标
-//   Layers as ProjectIcon, // 项目图标
-//   Activity as ActivityIcon, // 活动图标
-// } from "lucide-react";
-// 统计数据
-const stats = [
-  { title: "DM币", value: "420", change: "+5", color: "primary" },
-  { title: "USDT", value: "128", change: "+18", color: "success" },
-  { title: "总投资", value: "3,425", change: "+120", color: "warning" },
-  { title: "总收益", value: "87%", change: "-2%", color: "secondary" },
-];
-// const lvColorMap = {
-//   active: "success",
-//   paused: "danger",
-//   vacation: "warning",
-// };
 
 interface IconWrapperProps {
   children: React.ReactNode;
   className?: string;
 }
-
 interface ItemCounterProps {
   number: number;
 }
@@ -64,21 +41,124 @@ const IconWrapper = ({ children, className = "" }: IconWrapperProps) => (
     {children}
   </div>
 );
-
 // 计数器组件
 const ItemCounter = ({ number }: ItemCounterProps) => (
-  <span className="text-default-400 font-medium text-xs">
-    {number}
-  </span>
+  <div className="flex items-center gap-1 text-default-400">
+    <span className="text-small">{number}</span>
+  </div>
 );
 
+// 添加用户信息接口
+interface UserInfo {
+  id?: string;
+  walletAddress?: string;
+  performance?: {
+    payment?: number;
+  };
+  usdtAccount?: {
+    balance?: number;
+    pending?: number;
+  };
+  dmAccount?: {
+    balance?: number;
+    pending?: number;
+  };
+  compAccount?: {
+    balance?: number;
+    pending?: number;
+  };
+  reward?: {
+    total?: number;
+  };
+  // 可添加其他属性如：
+  // name?: string;
+  // email?: string;
+}
 export default function ProfilePage() {
-  const [isFollowed, setIsFollowed] = React.useState(false);
+  const { address } = useAccount();
+  const [balance, setBalance] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo>({});
+  // 2. 在组件内部定义 stats 状态
+  const [stats, setStats] = useState([
+    { title: "DM币", value: "0", change: "+0", color: "primary" },
+    { title: "USDT", value: "0", change: "+0", color: "success" },
+    { title: "DM复利", value: "0", change: "+0", color: "warning" },
+    { title: "总收益", value: "0", change: "+0", color: "secondary" },
+  ]);
+  const location = useLocation();
+  // 在组件中使用
+  const { query } = useContractCall(DM_CONTRACT); // 传入具体配置对象
+  
+  // 添加 useEffect 执行数据获取
+  useEffect(() => {
+    console.log("路由变化检测自动登录检测", location.pathname);
+    const fetchData = async () => {
+      try {
+        const balance = await query('balanceOf', [address]);
+        setBalance(balance.toString()); // 转换为字符串
+        console.log('用户余额:' + address, balance);
+      } catch (err) {
+        console.error('查询失败:', err);
+      }
+    };
+    const getUserInfo = async () => {
+      // 1. 添加地址存在性检查
+      if (!address) {
+        console.warn("钱包地址未定义");
+        return;
+      }
+
+      try {
+        // 2. 正确使用params传递参数
+        const userInfoResponse = await apiClient.get<UserInfo>(`user/${address}`);
+        console.log(userInfoResponse);
+        setUserInfo(userInfoResponse.data);
+        setStats([
+          { 
+            title: "DM币", 
+            value: userInfo.dmAccount?.balance?.toString() || "0", 
+            change: `+0`, 
+            color: "primary" 
+          },
+          { 
+            title: "USDT", 
+            value: userInfo.usdtAccount?.balance?.toString() || "0", 
+            change: `+0`, 
+            color: "success" 
+          },
+          { 
+            title: "DM复利", 
+            value: userInfo.compAccount?.balance?.toString() || "0", 
+            change: `+0`, 
+            color: "warning" 
+          },
+          { 
+            title: "总收益", 
+            value: userInfo.reward?.total?.toString() || "0", 
+            change: `+0`, 
+            color: "secondary" 
+          }
+        ]);
+      } catch (error) {
+        setUserInfo({});
+        // 3. 添加错误处理
+        console.error("获取用户信息失败:", error);
+      }
+    };
+    
+    fetchData();
+    getUserInfo();
+
+
+    
+  }, [location, address]); // 4. 添加address依赖
+
+  
 
   return (
     <DefaultLayout>
-      <section className="flex flex-col items-center gap-4 bg-[#000040]">
-        <Card className="rounded-t-none rounded-b-[24px] max-w-[400px]"
+      <section className="flex flex-col items-center gap-2 bg-[#000040]">
+        <Card className="rounded-t-none rounded-b-[24px] w-full"
           style={{
             background: 'linear-gradient(90deg, #6226CD, #D41E7F)',
             fontFamily: 'system-ui, sans-serif',
@@ -91,51 +171,82 @@ export default function ProfilePage() {
                 isBordered
                 radius="full"
                 size="md"
-                src="https://heroui.com/avatars/avatar-1.png"
+                src="/logo.png"
               />
               <div className="flex flex-col gap-1 items-start justify-center">
-                <h4 className="text-small font-semibold leading-none text-default-600">Zoey Lang</h4>
-                <h5 className="text-small tracking-tight text-default-400">@zoeylang</h5>
+                <h4 className="text-small font-semibold leading-none text-default-600">DM Token</h4>
+                <h5 className="text-small tracking-tight text-default-400">@BSCScan Address</h5>
               </div>
             </div>
-            <Button
-              className={isFollowed ? "bg-transparent text-foreground border-default-200" : ""}
-              color="primary"
-              radius="full"
-              size="sm"
-              variant={isFollowed ? "bordered" : "solid"}
-              onPress={() => setIsFollowed(!isFollowed)}
-            >
-              {isFollowed ? "LV1" : "LV1"}
-            </Button>
+            <Switch defaultSelected color="success">
+            </Switch>
           </CardHeader>
           <CardBody className="px-3 py-0 text-small text-default-400">
-            <p>Frontend developer and UI/UX enthusiast. Join me on this coding adventure!</p>
+            <Slider
+              className="max-w-md"
+              defaultValue={0}
+              formatOptions={{ style: "percent" }}
+              label="LV0"
+              marks={[
+                {
+                  value: 0,
+                  label: "",
+                },
+                {
+                  value: 0.2,
+                  label: "LV1",
+                },
+                {
+                  value: 0.4,
+                  label: "LV2",
+                },
+                {
+                  value: 0.6,
+                  label: "LV3",
+                },
+                {
+                  value: 0.8,
+                  label: "LV4",
+                },
+                {
+                  value: 1,
+                  label: "LV5",
+                }
+              ]}
+              maxValue={1}
+              minValue={0}
+              showTooltip={true}
+              step={0.2}
+            />
             <span className="pt-2">
-              #FrontendWithZoey
-              <span aria-label="computer" className="py-2" role="img">
-                💻
+              <span aria-label="wallet" className="py-2" role="img">
+                <WalletIcon />#{address}
               </span>
             </span>
           </CardBody>
           <CardFooter className="gap-3">
             <div className="flex gap-1">
-              <p className="font-semibold text-default-400 text-small">4</p>
-              <p className=" text-default-400 text-small">Following</p>
+              <p className="font-semibold text-default-400 text-small">{balance}</p>
+              <p className=" text-default-400 text-small">DM Token</p>
             </div>
             <div className="flex gap-1">
-              <p className="font-semibold text-default-400 text-small">97.1K</p>
-              <p className="text-default-400 text-small">Followers</p>
+              <p className="font-semibold text-default-400 text-small">{userInfo.performance?.payment ?? 0}</p>
+              <p className="text-default-400 text-small">Performance</p>
             </div>
           </CardFooter>
         </Card>
 
         {/* 统计数据卡片 - 应用深色半透明背景 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-0">
+        <div className="w-full grid grid-cols-2 gap-4 p-4">
           {stats.map((stat, index) => (
-            <Card
-              key={index}
-              className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm"
+            <Card key={index} className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm"
+              style={{
+                backgroundImage: "url('/bg.jpeg')", // 确保图片在public目录
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundAttachment: "fixed",
+                backgroundRepeat: "no-repeat"
+              }}
             >
               <CardBody className="p-4">
                 <p className="text-slate-300 text-sm">{stat.title}</p>
@@ -153,126 +264,114 @@ export default function ProfilePage() {
           ))}
         </div>
 
-          <div className="w-full px-4">
-        <Listbox
-          aria-label="User Menu"
-          className="p-0 gap-0 divide-y divide-default-300/50 dark:divide-default-100/80 bg-content1 overflow-visible shadow-small rounded-medium bg-[#000040] text-white"
-          itemClasses={{
-            base: "px-3 first:rounded-t-medium last:rounded-b-medium rounded-none gap-3 h-14 data-[hover=true]:bg-default-100/80",
-          }}
-          onAction={(key) => alert(key)}
-        >
-          <ListboxItem
-            key="issues"
-            endContent={<ItemCounter number={13} />}
-            startContent={
-              <IconWrapper className="bg-success/10 text-success">
-                <BugIcon className="text-lg " />
-              </IconWrapper>
-            }
+        <div className="w-full px-4">
+          <Listbox
+            aria-label="User Menu"
+            className="p-0 gap-0 divide-y divide-default-300/50 dark:divide-default-100/80 bg-content1 overflow-visible shadow-small rounded-medium bg-[#000040] text-white"
+            itemClasses={{
+              base: "px-3 first:rounded-t-medium last:rounded-b-medium rounded-none gap-3 h-14 data-[hover=true]:bg-default-100/80",
+            }}
+            onAction={(key) => alert(key)}
           >
-            Issues
-          </ListboxItem>
-          <ListboxItem
-            key="pull_requests"
-            endContent={<ItemCounter number={6} />}
-            startContent={
-              <IconWrapper className="bg-primary/10 text-primary">
-                <PullRequestIcon className="text-lg " />
-              </IconWrapper>
-            }
-          >
-            Pull Requests
-          </ListboxItem>
-          <ListboxItem
-            key="discussions"
-            endContent={<ItemCounter number={293} />}
-            startContent={
-              <IconWrapper className="bg-secondary/10 text-secondary">
-                <ChatIcon className="text-lg " />
-              </IconWrapper>
-            }
-          >
-            Discussions
-          </ListboxItem>
-          <ListboxItem
-            key="actions"
-            endContent={<ItemCounter number={2} />}
-            startContent={
-              <IconWrapper className="bg-warning/10 text-warning">
-                <PlayCircleIcon className="text-lg " />
-              </IconWrapper>
-            }
-          >
-            Actions
-          </ListboxItem>
-          <ListboxItem
-            key="projects"
-            endContent={<ItemCounter number={4} />}
-            startContent={
-              <IconWrapper className="bg-default/50 text-foreground">
-                <LayoutIcon className="text-lg " />
-              </IconWrapper>
-            }
-          >
-            Projects
-          </ListboxItem>
-          <ListboxItem
-            key="releases"
-            className="group h-auto py-3"
-            endContent={<ItemCounter number={399} />}
-            startContent={
-              <IconWrapper className="bg-primary/10 text-primary">
-                <TagIcon className="text-lg" />
-              </IconWrapper>
-            }
-            textValue="Releases"
-          >
-            <div className="flex flex-col gap-1">
-              <span>Releases</span>
-              <div className="px-2 py-1 rounded-small bg-default-100 group-data-[hover=true]:bg-default-200">
-                <span className="text-tiny text-default-600">@heroui/react@2.0.10</span>
-                <div className="flex gap-2 text-tiny">
-                  <span className="text-default-500">49 minutes ago</span>
-                  <span className="text-success">Latest</span>
-                </div>
-              </div>
-            </div>
-          </ListboxItem>
-          <ListboxItem
-            key="contributors"
-            endContent={<ItemCounter number={79} />}
-            startContent={
-              <IconWrapper className="bg-warning/10 text-warning">
-                <UsersIcon />
-              </IconWrapper>
-            }
-          >
-            Contributors
-          </ListboxItem>
-          <ListboxItem
-            key="watchers"
-            endContent={<ItemCounter number={82} />}
-            startContent={
-              <IconWrapper className="bg-default/50 text-foreground">
-                <EyeIcon />
-              </IconWrapper>
-            }
-          >
-            Watchers
-          </ListboxItem>
-          <ListboxItem
-            key="license"
-            endContent={<span className="text-small text-default-400">MIT</span>}
-            startContent={
-              <IconWrapper className="bg-danger/10 text-danger dark:text-danger-500">
-                <BookIcon />
-              </IconWrapper>
-            }
-          >
-            License
-          </ListboxItem>
-        </Listbox>
+            {/* 我的订单 */}
+            <ListboxItem
+              key="orders"
+              startContent={
+                <IconWrapper className="bg-primary/10 text-primary">
+                  <ShoppingBagIcon className="text-lg" />
+                </IconWrapper>
+              }
+            >
+              我的订单
+            </ListboxItem>
+
+            {/* 客服中心 */}
+            <ListboxItem
+              key="customer_service"
+              startContent={
+                <IconWrapper className="bg-success/10 text-success">
+                  <HeadphonesIcon className="text-lg" />
+                </IconWrapper>
+              }
+            >
+              客服中心
+            </ListboxItem>
+
+            {/* 修改密码 */}
+            <ListboxItem
+              key="change_password"
+              startContent={
+                <IconWrapper className="bg-warning/10 text-warning">
+                  <KeyIcon className="text-lg" />
+                </IconWrapper>
+              }
+            >
+              修改密码
+            </ListboxItem>
+
+            {/* 节点认证 */}
+            <ListboxItem
+              key="node"
+              startContent={
+                <IconWrapper className="bg-secondary/10 text-secondary">
+                  <NodeIcon className="text-lg" />
+                </IconWrapper>
+              }
+              endContent={<span className="text-small text-default-400 flex items-center items-end">去认证<RightIcon className="" /></span>}
+            >
+              节点认证
+            </ListboxItem>
+
+            {/* 平移建单 */}
+            <ListboxItem
+              key="DMRWA"
+              startContent={
+                <IconWrapper className="bg-pink-500/10 text-pink-500">
+                  <OrderIcon className="text-lg" />
+                </IconWrapper>
+              }
+              endContent={<span className="text-small text-default-400">去平移</span>}
+            >
+              平移建单
+            </ListboxItem>
+
+            {/* 优惠券 */}
+            <ListboxItem
+              key="coupons"
+              startContent={
+                <IconWrapper className="bg-purple-500/10 text-purple-500">
+                  <TicketIcon className="text-lg" />
+                </IconWrapper>
+              }
+              endContent={<ItemCounter number={82} />}
+            >
+              优惠券
+            </ListboxItem>
+
+            {/* 账户安全 */}
+            <ListboxItem
+              key="security"
+              startContent={
+                <IconWrapper className="bg-red-500/10 text-red-500">
+                  <ShieldIcon className="text-lg" />
+                </IconWrapper>
+              }
+            >
+              账户安全
+            </ListboxItem>
+
+            {/* 退出登录 */}
+            <ListboxItem
+              key="logout"
+              startContent={
+                <IconWrapper className="bg-gray-500/10 text-gray-500">
+                  <LogOutIcon className="text-lg" />
+                </IconWrapper>
+              }
+            >
+              退出登录
+            </ListboxItem>
+          </Listbox>
         </div>
         <div className="text-center text-sm text-slate-400">
           <p>© 2025 用户中心 | 当前版本 v1.2.4</p>

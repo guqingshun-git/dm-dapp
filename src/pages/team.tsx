@@ -1,12 +1,23 @@
-// import { title } from "@/components/primitives";
+import { useEffect, useState, useCallback } from "react";
 import DefaultLayout from "@/layouts/default";
+import { DM_CONTRACT } from "@/contracts/dmContract";
+import { useLocation } from "react-router-dom";
+import { useContractCall } from "@/hooks/useContractCall";
+import { useAccount } from "wagmi";
+import apiClient from "@/api";
+
+import { Spinner } from "@heroui/spinner";
+import { useInfiniteScroll } from "@heroui/use-infinite-scroll";
+import { Chip } from "@heroui/chip";
+import { Tab, Tabs } from "@heroui/tabs";
+import { WalletIcon } from "lucide-react";
+import { Slider } from "@heroui/slider";
+import { Switch } from "@heroui/switch";
 import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Avatar } from "@heroui/avatar";
-// import { Link } from "@heroui/link";
-// import { Image } from "@heroui/image";
-import { Button } from "@heroui/button";
 import { User } from "@heroui/user";
-import React from "react";
+import { Alert } from "@heroui/alert";
+
 import {
   Table,
   TableHeader,
@@ -14,109 +25,197 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  // getKeyValue,
 } from "@heroui/table";
-import { Spinner } from "@heroui/spinner";
-import { useInfiniteScroll } from "@heroui/use-infinite-scroll";
-import { useAsyncList } from "@react-stately/data";
-import { Chip } from "@heroui/chip";
-import { Tab, Tabs } from "@heroui/tabs";
-const cardList = [
-  {
-    title: "直推",
-    img: "/images/fruit-1.jpeg",
-    price: "$5.50",
-  },
-  {
-    title: "团队",
-    img: "/images/fruit-2.jpeg",
-    price: "$3.0000000",
-  },
-  {
-    title: "大区",
-    img: "/images/fruit-3.jpeg",
-    price: "$10.00",
-  }
-];
-// const lvColorMap = {
-//   active: "success",
-//   paused: "danger",
-//   vacation: "warning",
-// };
 
-// 在文件顶部添加类型定义
-interface ListItem {
-  name: string;
-  birth_year: string;
-  height: string;
-  mass: string;
-  skin_color: string;
+// 团队成员接口
+interface TeamMember {
+  id: string;
+  username: string;
+  walletAddress: string;
+  teamCount: number;
+  level: string;
   avatar?: string;
-  [key: string]: any; // 允许其他未定义属性
 }
 
+// 团队信息接口
+interface TeamInfo {
+  directCount: number;
+  teamCount: number;
+  areaCount: number;
+  areas: {
+    name: string;
+    count: number;
+  }[];
+}
+
+// const lvColorMap = {
+//   0: "default",
+//   1: "danger",
+//   2: "warning",
+//   3: "secondary",
+//   4: "success",
+//   5: "danger"
+// };
 export default function TeamPage() {
-  const [isFollowed, setIsFollowed] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [hasMore, setHasMore] = React.useState(false);
+  const { address } = useAccount();
+  const [balance, setBalance] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<any>({});
+  const location = useLocation();
+  const { query } = useContractCall(DM_CONTRACT);
+  
+  // 团队数据状态
+  const [teamInfo, setTeamInfo] = useState<TeamInfo | null>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]); // 初始化为空数组
+  const [activeArea, setActiveArea] = useState<number>(0); // 0=A区, 1=B区, 2=C区
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const limit = 10; // 每页数量
 
-  let list = useAsyncList<ListItem>({
-    async load({ signal, cursor }) {
-      if (cursor) {
-        setIsLoading(false);
+  // 获取用户信息
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (address) {
+          const balance = await query('balanceOf', [address]);
+          setBalance(balance.toString());
+          
+          const userInfoResponse = await apiClient.get(`user/${address}`);
+          setUserInfo(userInfoResponse.data);
+        }
+      } catch (err) {
+        console.error('数据获取失败:', err);
       }
+    };
+    
+    fetchData();
+  }, [location, address]);
 
-      // If no cursor is available, then we're loading the first page.
-      // Otherwise, the cursor is the next URL to load, as returned from the previous page.
-      const res = await fetch(cursor || "https://swapi.py4e.com/api/people/?search=", { signal });
-      let json = await res.json();
+  // 修复点1: 使用可选链操作符安全访问API响应数据
+  const fetchTeamData = useCallback(async (areaIndex: number, pageNum: number = 1) => {
+    try {
+      setIsLoading(true);
+      
+      // 首次加载时获取团队统计信息
+      if (pageNum === 1) {
+        const teamResponse = await apiClient.get(`/team/${address}`);
+        setTeamInfo(teamResponse.data);
+        console.log(teamResponse)
+      }
+      
+      // 获取团队成员
+      const response = await apiClient.get(`/team/${address}/members`, {
+        params: {
+          area: areaIndex,
+          page: pageNum,
+          limit
+        }
+      });
+      
+      // 安全访问members属性
+      const members = response?.data?.members || []; // 使用空数组作为默认值
+      console.log(members)
+      const hasMoreData = response?.data?.hasMore ?? false; // 安全访问hasMore属性
+      
+      if (pageNum === 1) {
+        setTeamMembers(members);
+      } else {
+        setTeamMembers(prev => [...prev, ...members]);
+      }
+      
+      setHasMore(hasMoreData);
+      setPage(pageNum);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("获取团队信息失败:", error);
+      // 出错时重置当前页的成员列表为空
+      if (pageNum === 1) {
+        setTeamMembers([]);
+      }
+      setHasMore(false);
+      setIsLoading(false);
+    }
+  }, [address]);
 
-      setHasMore(json.next !== null);
+  // 初始化加载A区数据
+  useEffect(() => {
+    if (address) {
+      fetchTeamData(0);
+    }
+  }, [address, fetchTeamData]);
 
-      return {
-        items: json.results,
-        cursor: json.next,
-      };
-    },
+  // 区域切换处理
+  const handleAreaChange = (areaIndex: number) => {
+    const areaIndexCount = (teamInfo?.areas as { count: number }[])?.[areaIndex]?.count || 0;
+    if(areaIndexCount == 0){
+      throw new Error('区无人');
+      <Alert title="{`区无人`}" />
+    }
+    setActiveArea(areaIndex);
+    setPage(1);
+    setTeamMembers([]);
+    fetchTeamData(areaIndex);
+  };
+
+  // 无限滚动加载更多
+  const [loaderRef, scrollerRef] = useInfiniteScroll({ 
+    hasMore, 
+    onLoadMore: () => fetchTeamData(activeArea, page + 1)
   });
 
-  const [loaderRef, scrollerRef] = useInfiniteScroll({ hasMore, onLoadMore: list.loadMore });
-
-  const renderCell = React.useCallback((user: ListItem, columnKey: keyof ListItem) => {
-    const cellValue = user[columnKey];
-
+  // 安全访问teamInfo属性
+  // 重构 cardList 生成逻辑
+  const cardList = [
+    { title: "直推", value: teamInfo?.directCount || 0 },
+    { title: "团队", value: teamInfo?.teamCount || 0 },
+    { title: "大区", value: teamInfo?.areaCount || 0 }
+  ];
+  // 渲染团队成员单元格
+  const renderTeamCell = useCallback((user: TeamMember, columnKey: keyof TeamMember) => {
     switch (columnKey) {
-      case "name":
+      case "username":
         return (
           <User
-            avatarProps={{ radius: "lg", src: user.avatar }}
-            description={user.birth_year}
-            name={cellValue}
+            avatarProps={{ radius: "lg", src: user.avatar || "/logo.png" }}
+            name={user.username || "未知用户"}
           >
-            {user.birth_year}
+            {user.walletAddress ? 
+              `${user.walletAddress.substring(0, 6)}...${user.walletAddress.substring(38)}` : 
+              "未知地址"}
           </User>
         );
-      case "gender":
+      case "teamCount":
         return (
           <div className="flex flex-col">
-            <p className="text-bold text-small capitalize">{user.height}</p>
-            <p className="text-bold text-tiny capitalize text-default-400">{user.mass}</p>
+            <p className="text-bold text-small capitalize">
+              {user.teamCount?.toLocaleString() || "0"}
+            </p>
+            <p className="text-bold text-tiny capitalize text-default-400">成员</p>
           </div>
         );
-      case "birth_year":
+      case "level":
         return (
           <Chip className="capitalize" size="sm" variant="flat">
-            {user.skin_color}
+           Lv{user.level}
           </Chip>
         );
       default:
-        return cellValue;
+        return user[columnKey] || ""; // 安全访问属性
     }
   }, []);
+
   return (
     <DefaultLayout>
-      <section className="flex flex-col items-center justify-center gap-4">
-        <Card className="rounded-t-none rounded-b-[24px] max-w-[400px]"
+      <section className="flex flex-col items-center gap-4"
+        // style={{
+        //   backgroundImage: "url('/bg.jpeg')", // 确保图片在public目录
+        //   backgroundSize: "cover",
+        //   backgroundPosition: "center",
+        //   backgroundAttachment: "fixed",
+        //   backgroundRepeat: "no-repeat"
+        // }}
+      >
+        <Card className="rounded-t-none rounded-b-[24px] w-full"
           style={{
             background: 'linear-gradient(90deg, #6226CD, #D41E7F)',
             fontFamily: 'system-ui, sans-serif',
@@ -129,48 +228,61 @@ export default function TeamPage() {
                 isBordered
                 radius="full"
                 size="md"
-                src="https://heroui.com/avatars/avatar-1.png"
+                src="/logo.png"
               />
               <div className="flex flex-col gap-1 items-start justify-center">
-                <h4 className="text-small font-semibold leading-none text-default-600">Zoey Lang</h4>
-                <h5 className="text-small tracking-tight text-default-400">@zoeylang</h5>
+                <h4 className="text-small font-semibold leading-none text-default-600">DM Token</h4>
+                <h5 className="text-small tracking-tight text-default-400">@BSCScan Address</h5>
               </div>
             </div>
-            <Button
-              className={isFollowed ? "bg-transparent text-foreground border-default-200" : ""}
-              color="primary"
-              radius="full"
-              size="sm"
-              variant={isFollowed ? "bordered" : "solid"}
-              onPress={() => setIsFollowed(!isFollowed)}
-            >
-              {isFollowed ? "LV1" : "LV1"}
-            </Button>
+            <Switch defaultSelected color="success" />
           </CardHeader>
           <CardBody className="px-3 py-0 text-small text-default-400">
-            <p>Frontend developer and UI/UX enthusiast. Join me on this coding adventure!</p>
+            <Slider
+              className="max-w-md"
+              defaultValue={0}
+              formatOptions={{ style: "percent" }}
+              label="LV0"
+              marks={[
+                { value: 0, label: "" },
+                { value: 0.2, label: "LV1" },
+                { value: 0.4, label: "LV2" },
+                { value: 0.6, label: "LV3" },
+                { value: 0.8, label: "LV4" },
+                { value: 1, label: "LV5" }
+              ]}
+              maxValue={1}
+              minValue={0}
+              showTooltip={true}
+              step={0.2}
+            />
             <span className="pt-2">
-              #FrontendWithZoey
-              <span aria-label="computer" className="py-2" role="img">
-                💻
+              <span aria-label="wallet" className="py-2" role="img">
+                <WalletIcon />#{address || "未连接钱包"}
               </span>
             </span>
           </CardBody>
           <CardFooter className="gap-3">
             <div className="flex gap-1">
-              <p className="font-semibold text-default-400 text-small">4</p>
-              <p className=" text-default-400 text-small">Following</p>
+              <p className="font-semibold text-default-400 text-small">{balance || "0"}</p>
+              <p className="text-default-400 text-small">DM Token</p>
             </div>
             <div className="flex gap-1">
-              <p className="font-semibold text-default-400 text-small">97.1K</p>
-              <p className="text-default-400 text-small">Followers</p>
+              <p className="font-semibold text-default-400 text-small">
+                {userInfo?.performance?.payment || "0"} {/* 使用可选链访问 */}
+              </p>
+              <p className="text-default-400 text-small">Performance</p>
             </div>
           </CardFooter>
         </Card>
 
-        <div className="gap-2 grid grid-cols-3 px-2">
+        <div className="w-full grid grid-cols-3 gap-2 px-2">
           {cardList.map((item, index) => (
-            <Card className="py-4 text-white w-full" key={index} isPressable shadow="sm"
+            <Card 
+              key={index} 
+              className="py-2 text-white w-full" 
+              isPressable 
+              shadow="sm"
               style={{
                 background: 'linear-gradient(90deg, #6226CD, #D41E7F)',
                 fontFamily: 'system-ui, sans-serif',
@@ -180,71 +292,70 @@ export default function TeamPage() {
               <CardHeader className="pb-0 pt-2 px-4 flex flex-col items-start w-full">
                 <p className="text-tiny uppercase font-bold">{item.title}</p>
                 <small className="text-default-500">人</small>
-                <h4 className="font-bold text-large">10000000</h4>
+                <h4 className="font-bold text-large">{item.value.toLocaleString()}</h4>
               </CardHeader>
-              {/* <CardBody className="overflow-visible py-2">
-                <Image
-                  alt="Card background"
-                  className="object-cover rounded-xl"
-                  src="https://heroui.com/images/hero-card-complete.jpeg"
-                  width={70}
-                />
-              </CardBody> */}
             </Card>
-
-
           ))}
         </div>
-        
-        <div className="dark">
-          <Tabs aria-label="Tabs colors" color="secondary" fullWidth radius="full" className="p-2">
-            <Tab key="photos" title="A区" />
-            <Tab key="music" title="B区" />
-            <Tab key="videos" title="C区" />
+
+        <div className="dark w-full">
+          <Tabs 
+            aria-label="团队区域" 
+            color="secondary" 
+            fullWidth 
+            radius="full" 
+            className="p-2"
+            selectedKey={activeArea.toString()}
+            onSelectionChange={(key) => handleAreaChange(Number(key))}
+          >
+            <Tab key="0" title="A区" />
+            <Tab key="1" title="B区" />
+            <Tab key="2" title="C区" />
           </Tabs>
+          
           <Table
             isHeaderSticky
-            aria-label="Example table with infinite pagination"
+            aria-label="团队成员列表"
             color="primary"
             baseRef={scrollerRef}
             bottomContent={
-              hasMore ? (
-                <div className="flex w-full justify-center">
+              hasMore && !isLoading ? (
+                <div className="flex w-full justify-center py-4">
                   <Spinner ref={loaderRef} color="white" />
                 </div>
               ) : null
             }
             classNames={{
-              base: "max-h-[820px] overflow-scroll bg-black",
-              table: "min-h-[820px] bg-transparent",
+              base: "max-h-[520px] overflow-scroll bg-black text-white",
+              table: "min-h-[200px] bg-transparent",
             }}
-
           >
             <TableHeader>
-              <TableColumn key="name">用户</TableColumn>
-              <TableColumn key="gender">团队</TableColumn>
-              <TableColumn key="birth_year">等级Lv</TableColumn>
+              <TableColumn key="username">用户</TableColumn>
+              <TableColumn key="teamCount">团队</TableColumn>
+              <TableColumn key="level">等级Lv</TableColumn>
             </TableHeader>
-
-            <TableBody 
-            emptyContent={"No users found"}
-            isLoading={isLoading}
-            items={list.items as ListItem[]}
-            loadingContent={<Spinner color="primary" />}
-          >
-            {(item: ListItem) => (
-              <TableRow key={item.name}>
-                {(columnKey) => (
-                  <TableCell>
-                    {renderCell(item, columnKey as keyof ListItem)}
-                  </TableCell>
-                )}
-              </TableRow>
-            )}
-          </TableBody>
-
-
+            
+            <TableBody
+              isLoading={isLoading}
+              loadingContent={<Spinner color="primary" className="my-8" />}
+              items={teamMembers}
+            >
+              {(item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{renderTeamCell(item, "username")}</TableCell>
+                  <TableCell>{renderTeamCell(item, "teamCount")}</TableCell>
+                  <TableCell>{renderTeamCell(item, "level")}</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
           </Table>
+          
+          {!isLoading && teamMembers.length === 0 && (
+            <div className="flex justify-center py-8 text-white bg-black">
+              当前区域暂无团队成员
+            </div>
+          )}
         </div>
       </section>
     </DefaultLayout>

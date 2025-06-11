@@ -1,53 +1,19 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/navbar";
-import { useEffect } from 'react';
-import { useAccount } from 'wagmi';
-// import { ConnectButton } from '@rainbow-me/rainbowkit';
-function WalletStatusListener() {
-  const { 
-    address, 
-    isConnected, 
-    // isConnecting, 
-    isDisconnected,
-    // isReconnecting,
-    status  // 连接状态：'disconnected' | 'connecting' | 'connected' | 'reconnecting'
-  } = useAccount();
-
-  useEffect(() => {
-    console.log(`钱包连接状态变化: ${status}`);
-    
-    if (isConnected) {
-      console.log(`已连接钱包: ${address}`);
-      // 执行连接成功后的操作，如获取用户信息
-    }
-    
-    if (isDisconnected) {
-      console.log('钱包已断开');
-      // 执行断开连接后的清理操作
-    }
-  }, [status, address, isConnected, isDisconnected]);
-
-  return null; // 纯监听组件，无需渲染UI
-}
-
 import { 
   HomeIcon, 
   UserGroupIcon, // 团队图标（替换MusicalNoteIcon）
   WalletIcon,    // 钱包图标（替换Squares2X2Icon）
-  UserCircleIcon 
+  UserCircleIcon,
+  ChartBarIcon
 } from "@heroicons/react/24/solid";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function DefaultLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate(); // 添加导航钩子
-  const hideNavbarPaths = ["/","/team","/wallet","/profile"];
-   // 获取当前激活标签（排除AuthRoute的干扰）
-  //  const getActiveTab = () => {
-  //   const path = location.pathname;
-  //   return tabs.some(tab => tab.path === path) ? path : "/";
-  // };
-
+  // const hideNavbarPaths = ["/","/team","/wallet","/profile"];
+  const hideNavbarPaths = [""];
   // 处理标签点击
   const handleTabClick = (path: string) => {
     navigate(path);
@@ -60,6 +26,14 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
       icon: <HomeIcon className="w-6 h-6" />,
       activeIcon: (
         <HomeIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+      )
+    },
+    { 
+      path: "/compound", 
+      label: "复利", 
+      icon: <ChartBarIcon className="w-6 h-6" />,
+      activeIcon: (
+        <ChartBarIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
       )
     },
     { 
@@ -92,7 +66,6 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="relative flex flex-col h-screen bg-[#000040] dark:bg-gray-100">
-       <WalletStatusListener /> {/* 添加监听器 */}
       {!hideNavbarPaths.includes(location.pathname) && <Navbar />}
       
       <main className="container mx-auto max-w-7xl flex-grow">
