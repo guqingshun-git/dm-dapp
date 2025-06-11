@@ -49,8 +49,8 @@ import {
 } from "@tanstack/react-query";
 
 const config = getDefaultConfig({
-  appName: 'phantomBloc',
-  projectId: 'b5284eec2e9a2a680e1d7a86da84c5e0',
+  appName: 'DM-DAPP',
+  projectId: '68433b7e17a1a11a78f8f48fd1e880db',
   chains: [bsc, mainnet, polygon, optimism, arbitrum, base],
   ssr: true, // If your dApp uses server side rendering (SSR)
   wallets: [
