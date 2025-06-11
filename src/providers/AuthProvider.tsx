@@ -23,6 +23,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // ✅ 核心登录逻辑
   const signIn = async () => {
+    console.log('开始登录')
     if (!address) return;
     
     try {
