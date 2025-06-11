@@ -9,7 +9,7 @@ import {
   NavbarBrand,
   NavbarContent,
   // NavbarItem,
-  NavbarMenuToggle,
+  // NavbarMenuToggle,
   NavbarMenu,
   NavbarMenuItem,
 } from "@heroui/navbar";
@@ -17,13 +17,22 @@ import {
 // import clsx from "clsx";
 
 import { siteConfig } from "@/config/site";
-import { ThemeSwitch } from "@/components/theme-switch";
+// import { ThemeSwitch } from "@/components/theme-switch";
 // import { Logo } from "@/components/icons";
 
 export const Navbar = () => {
   
   return (
-    <HeroUINavbar maxWidth="xl" position="sticky">
+    <HeroUINavbar maxWidth="xl" position="sticky"
+    style={{
+      backgroundImage: "url('/bg.jpeg')", // 确保图片在public目录
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundAttachment: "fixed",
+      backgroundRepeat: "no-repeat",
+      paddingLeft:"0 !important"
+    }}
+    >
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
         <NavbarBrand className="gap-3 max-w-fit">
           <Link
@@ -48,8 +57,8 @@ export const Navbar = () => {
           <GithubIcon className="text-default-500" />
         </Link> */}
         <ConnectButton label="Sign" accountStatus="avatar" chainStatus="none"/>
-        <ThemeSwitch />
-        <NavbarMenuToggle />
+        {/* <ThemeSwitch /> */}
+        {/* <NavbarMenuToggle /> */}
       </NavbarContent>
 
       <NavbarMenu>
