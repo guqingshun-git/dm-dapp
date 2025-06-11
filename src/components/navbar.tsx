@@ -3,6 +3,7 @@
 import { Link } from "@heroui/link";
 // import { Input } from "@heroui/input";
 import { title } from "@/components/primitives";
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import {
   Navbar as HeroUINavbar,
   NavbarBrand,
@@ -31,7 +32,7 @@ export const Navbar = () => {
             href="/"
           >
             {/* <Logo /> */}
-            <img src="/logo.png" className="w-12"/>
+            <img src="/logo.png" className="w-10"/>
             <span className={title({ color: "violet" })}>TF-RWA&nbsp;</span>
             {/* <p className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600">
   TF-RWA
@@ -46,6 +47,7 @@ export const Navbar = () => {
         {/* <Link isExternal href={siteConfig.links.github}>
           <GithubIcon className="text-default-500" />
         </Link> */}
+        <ConnectButton label="Sign" accountStatus="avatar" chainStatus="none"/>
         <ThemeSwitch />
         <NavbarMenuToggle />
       </NavbarContent>

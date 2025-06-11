@@ -1,7 +1,7 @@
 // src/components/AuthRoute.tsx
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthProvider';
-
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 const AuthRoute = () => {
   const { isAuthenticated } = useAuth();
 
@@ -13,12 +13,7 @@ const AuthRoute = () => {
         <p className="text-gray-600 mb-8">
           请连接钱包并登录以访问此页面
         </p>
-        <button
-          onClick={() => window.location.reload()} // 简化登录触发
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          立即登录
-        </button>
+        <ConnectButton/>
       </div>
     );
 };

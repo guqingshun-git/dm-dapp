@@ -11,7 +11,7 @@ import { Button } from "@heroui/button";
 // import { useBankOperations } from '@/hooks/useBankOperations';
 import { useContractCall } from "@/hooks/useContractCall";
 import { DM_CONTRACT } from '@/contracts/dmContract'; // 导入具体配置对象
-// import { ConnectButton } from '@rainbow-me/rainbowkit';
+
 
 
 export const orders = [
