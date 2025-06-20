@@ -370,9 +370,9 @@ export default function IndexPage() {
         functionName: 'createOrder',
         args: [usdtAmount, deadline, signature],
         // 手动设置 Gas 默认值（推荐 200,000）
-        gas: 200000n, // BigInt 类型，兼容 viem 要求[4,5](@ref)
+        gas: 80000n, // BigInt 类型，兼容 viem 要求[4,5](@ref)
         // 可选：设置 Gas 价格（单位：gwei）
-        gasPrice: 30_000_000_000n // 30 gwei（根据当前网络动态调整）[1,11](@ref)
+        // gasPrice: 30_000_000_000n // 30 gwei（根据当前网络动态调整）[1,11](@ref)
       }).catch((error) => {
         console.error("交易发送失败:", error);
         throw new Error(`Gas 设置错误: ${error.shortMessage || error.message}`);
