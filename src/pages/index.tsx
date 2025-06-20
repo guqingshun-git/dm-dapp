@@ -110,7 +110,7 @@ export default function IndexPage() {
   const [orderStatusPolling, setOrderStatusPolling] = useState(false);
   const { session, signIn, userInfo, setUserInfo } = useAuth();
   const { data: detaildInfo } = useUserInfo(session?.address);
-  
+
   useEffect(() => {
     detaildInfo && setUserInfo(detaildInfo);
     console.log(userInfo)
@@ -242,7 +242,7 @@ export default function IndexPage() {
     }
   };
 
-  
+
 
   // 安全购买处理函数
   const handleSecureBuy = async (orderId: number) => {
@@ -254,11 +254,11 @@ export default function IndexPage() {
     }
     if (userInfo?.directInviter === null) {
       addToast({
-      title: '请先绑定邀请人',
-      description: '请到个人中心页面操作',
-      color: 'default',
-      timeout: 5000
-    });
+        title: '请先绑定邀请人',
+        description: '请到个人中心页面操作',
+        color: 'default',
+        timeout: 5000
+      });
       return;
     }
     // 场景3: 已认证，执行订单
@@ -369,6 +369,13 @@ export default function IndexPage() {
         abi: DM_CONTRACT.abi,
         functionName: 'createOrder',
         args: [usdtAmount, deadline, signature],
+        // 手动设置 Gas 默认值（推荐 200,000）
+        gas: 200000n, // BigInt 类型，兼容 viem 要求[4,5](@ref)
+        // 可选：设置 Gas 价格（单位：gwei）
+        gasPrice: 30_000_000_000n // 30 gwei（根据当前网络动态调整）[1,11](@ref)
+      }).catch((error) => {
+        console.error("交易发送失败:", error);
+        throw new Error(`Gas 设置错误: ${error.shortMessage || error.message}`);
       });
 
       // 保存交易哈希用于轮询检查
