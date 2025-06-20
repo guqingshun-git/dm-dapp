@@ -94,11 +94,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           // ✅ 恢复会话时同步获取用户信息
           try {
             const userResponse = await fetchUserInfo(address);
-            setUserInfo(userResponse.data);
+            setUserInfo(userResponse);
           } catch (error) {
             console.error('用户信息获取失败', error);
             // 失败时保持基础信息
-            setUserInfo({ _id: "", balance: "0", walletAddress: address });
+            setUserInfo({ _id: "", walletAddress: address });
           }
           setSession({ address });
         }

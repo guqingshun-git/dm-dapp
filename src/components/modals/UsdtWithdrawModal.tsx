@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { useAuth } from '@/providers/AuthProvider';
-import { withdrawUsdt } from '@/api/api';
+// import { withdrawUsdt } from '@/api/api';
 
 interface UsdtWithdrawModalProps {
   isOpen: boolean;
@@ -49,10 +49,10 @@ const UsdtWithdrawModal: React.FC<UsdtWithdrawModalProps> = ({
       return;
     }
     
-    if (amountNum > usdtBalance) {
-      setError(`提现金额不能超过可用余额 (${usdtBalance} USDT)`);
-      return;
-    }
+    // if (amountNum > usdtBalance) {
+    //   setError(`提现金额不能超过可用余额 (${usdtBalance} USDT)`);
+    //   return;
+    // }
     
     if (!address.trim()) {
       setError('请输入钱包地址');
@@ -64,13 +64,13 @@ const UsdtWithdrawModal: React.FC<UsdtWithdrawModalProps> = ({
     
     try {
       // 创建BigInt金额（假设USDT有6位小数）
-      const bigIntAmount = BigInt(amountNum * 10**6);
+      // const bigIntAmount = BigInt(amountNum * 10**6);
       
       // 调用API执行提现
-      await withdrawUsdt(session.address, {
-        amount: bigIntAmount.toString(),
-        withdrawAddress: address
-      });
+      // await withdrawUsdt(session.address, {
+      //   amount: bigIntAmount.toString(),
+      //   withdrawAddress: address
+      // });
       
       onSuccess('USDT提现申请已提交！');
       onClose();

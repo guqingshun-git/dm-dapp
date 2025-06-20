@@ -3,8 +3,8 @@ import apiClient from '@/api'; // 已实现的axios实例
 import { UserInfo } from '@/types/user';
 
 // 用户信息请求
-export const fetchUserInfo = (address: string): Promise<UserInfo> =>
-    apiClient.get(`user/${address}`);
+export const fetchUserInfo = (address: string): Promise<UserInfo> => 
+    apiClient.get(`user/${address}`).then(response => response.data);
 
 // 修改用户信息
 export const updateUserInfo = (

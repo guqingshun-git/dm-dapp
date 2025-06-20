@@ -59,7 +59,7 @@ interface TeamInfo {
 // };
 export default function TeamPage() {
   const { address } = useAccount();
-  const [balance, setBalance] = useState<string | null>(null);
+  const [balance] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>({});
   const location = useLocation();
   

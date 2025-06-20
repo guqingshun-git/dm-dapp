@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { useAuth } from '@/providers/AuthProvider';
-import { withdrawDm } from '@/api/api';
+// import { withdrawDm } from '@/api/api';
 
 interface DmWithdrawModalProps {
   isOpen: boolean;
@@ -49,10 +49,10 @@ const DmWithdrawModal: React.FC<DmWithdrawModalProps> = ({
       return;
     }
     
-    if (amountNum > dmBalance) {
-      setError(`提现金额不能超过可用余额 (${dmBalance} DM)`);
-      return;
-    }
+    // if (amountNum > dmBalance) {
+    //   setError(`提现金额不能超过可用余额 (${dmBalance} DM)`);
+    //   return;
+    // }
     
     if (!address.trim()) {
       setError('请输入钱包地址');
@@ -64,13 +64,13 @@ const DmWithdrawModal: React.FC<DmWithdrawModalProps> = ({
     
     try {
       // 创建BigInt金额（假设DM代币有18位小数）
-      const bigIntAmount = BigInt(amountNum * 10**18);
+      // const bigIntAmount = BigInt(amountNum * 10**18);
       
-      // 调用API执行提现
-      await withdrawDm(session.address, {
-        amount: bigIntAmount.toString(),
-        withdrawAddress: address
-      });
+      // // 调用API执行提现
+      // await withdrawDm(session.address, {
+      //   amount: bigIntAmount.toString(),
+      //   withdrawAddress: address
+      // });
       
       onSuccess('DM提现申请已提交！');
       onClose();
