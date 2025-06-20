@@ -223,26 +223,28 @@ export default function IndexPage() {
   }, [currentTxHash]);
 
   // 创建后端订单的函数（现在直接调用，不依赖事件监听）
-  const createBackendOrder = async (txHash: string, amount: bigint) => {
+  const createBackendOrder = async (txHash: string, amount: bigint, retryCount = 0) => {
     try {
       await apiClient.post('order', {
         txHash,
         amount: amount.toString(),
         userAddress: session?.address
+      }, {
+        timeout: 15000 // 显式设置15秒超时（TP默认10秒）
       });
       console.log('后端订单创建请求已发送');
     } catch (error) {
-      console.error('后端订单创建请求失败:', error);
+      if (retryCount < 2) {
+        return createBackendOrder(txHash, amount, retryCount + 1); // 自动重试2次
+      }
+      // 错误提示移除换行符
       addToast({
-        title: '订单同步请求失败',
+        title: `订单同步失败 TX: ${txHash.slice(0, 12)}...`, // 移除 \n
         description: '请稍后重试或联系客服',
-        color: 'warning',
-        timeout: 5000
+        color: 'warning'
       });
     }
   };
-
-
 
   // 安全购买处理函数
   const handleSecureBuy = async (orderId: number) => {
