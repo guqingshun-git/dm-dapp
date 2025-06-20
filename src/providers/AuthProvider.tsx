@@ -25,7 +25,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const [session, setSession] = useState<{ address?: string }>({});
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null); // 新增状态
-
+  useEffect(() => {
+    signOut()
+  }, []);
   // ✅ 核心登录逻辑
   const signIn = async (): Promise<void> => {
     // console.log('开始登录')
