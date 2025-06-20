@@ -8,7 +8,7 @@ import ProfilePage from "@/pages/profile";
 import DocsPage from "@/pages/docs";
 import BlogPage from "@/pages/blog";
 import AboutPage from "@/pages/about";
-
+import ApprovePage from "./pages/approve";
 function App() {
   return (
     <Routes>
@@ -22,6 +22,7 @@ function App() {
     
     {/* 公开路由 */}
     <Route index element={<IndexPage />} />
+    <Route path="approve" element={<ApprovePage />} />
     <Route path="docs" element={<DocsPage />} />
     <Route path="blog" element={<BlogPage />} />
     <Route path="about" element={<AboutPage />} />

@@ -1,8 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import DefaultLayout from "@/layouts/default";
-import { DM_CONTRACT } from "@/contracts/dmContract";
 import { useLocation } from "react-router-dom";
-import { useContractCall } from "@/hooks/useContractCall";
 import { useAccount } from "wagmi";
 import apiClient from "@/api";
 
@@ -10,14 +8,16 @@ import { Spinner } from "@heroui/spinner";
 import { useInfiniteScroll } from "@heroui/use-infinite-scroll";
 import { Chip } from "@heroui/chip";
 import { Tab, Tabs } from "@heroui/tabs";
-import { WalletIcon } from "lucide-react";
 import { Slider } from "@heroui/slider";
-import { Switch } from "@heroui/switch";
+import { Button } from "@heroui/button";
 import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Avatar } from "@heroui/avatar";
 import { User } from "@heroui/user";
 import { Alert } from "@heroui/alert";
-
+import {
+   Wallet as WalletIcon,
+  GitFork as NodeIcon, 
+} from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -26,6 +26,7 @@ import {
   TableRow,
   TableCell,
 } from "@heroui/table";
+
 
 // 团队成员接口
 interface TeamMember {
@@ -61,7 +62,6 @@ export default function TeamPage() {
   const [balance, setBalance] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>({});
   const location = useLocation();
-  const { query } = useContractCall(DM_CONTRACT);
   
   // 团队数据状态
   const [teamInfo, setTeamInfo] = useState<TeamInfo | null>(null);
@@ -77,8 +77,8 @@ export default function TeamPage() {
     const fetchData = async () => {
       try {
         if (address) {
-          const balance = await query('balanceOf', [address]);
-          setBalance(balance.toString());
+          // const balance = await query('balanceOf', [address]);
+          // setBalance(balance.toString());
           
           const userInfoResponse = await apiClient.get(`user/${address}`);
           setUserInfo(userInfoResponse.data);
@@ -235,7 +235,9 @@ export default function TeamPage() {
                 <h5 className="text-small tracking-tight text-default-400">@BSCScan Address</h5>
               </div>
             </div>
-            <Switch defaultSelected color="success" />
+            <Button isIconOnly aria-label="Like" color="success" className="white">
+              <NodeIcon />
+            </Button>
           </CardHeader>
           <CardBody className="px-3 py-0 text-small text-default-400">
             <Slider

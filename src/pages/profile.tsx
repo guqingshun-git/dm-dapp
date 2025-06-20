@@ -1,32 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import apiClient from "@/api";
-import { useAccount } from 'wagmi'
-import { useContractCall } from "@/hooks/useContractCall";;
-import { DM_CONTRACT } from "@/contracts/dmContract";
+import { useAuth } from '@/providers/AuthProvider';
+import { useUserInfo } from '@/hooks/useUserInfo';
 
-// import { title } from "@/components/primitives";
 import DefaultLayout from "@/layouts/default";
 import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Avatar } from "@heroui/avatar";
-// import { Link } from "@heroui/link";
-// import { Button } from "@heroui/button";
 import { Chip } from "@heroui/chip";
 import { Listbox, ListboxItem } from "@heroui/listbox";
-import { Switch } from "@heroui/switch";
+import { Button } from "@heroui/button";
 import { Slider } from "@heroui/slider";
+
+import InviteModal from '@/components/modals/InviteModal';
+import UsdtWithdrawModal from '@/components/modals/UsdtWithdrawModal';
+import DmWithdrawModal from '@/components/modals/DmWithdrawModal';
+
 import {
   ShoppingBag as ShoppingBagIcon,
   Headphones as HeadphonesIcon,
   Key as KeyIcon,
-  Network as NodeIcon,
   ShoppingCart as OrderIcon,
   ChevronRight as RightIcon,
   Ticket as TicketIcon,
   Shield as ShieldIcon,
   LogOut as LogOutIcon,
-  Wallet as WalletIcon
+  Wallet as WalletIcon,
+  GitFork as NodeIcon,
+  MailPlus as InviteIcon,
 } from "lucide-react";
+
 
 interface IconWrapperProps {
   children: React.ReactNode;
@@ -48,36 +50,29 @@ const ItemCounter = ({ number }: ItemCounterProps) => (
   </div>
 );
 
-// 添加用户信息接口
-interface UserInfo {
-  id?: string;
-  walletAddress?: string;
-  performance?: {
-    payment?: number;
-  };
-  usdtAccount?: {
-    balance?: number;
-    pending?: number;
-  };
-  dmAccount?: {
-    balance?: number;
-    pending?: number;
-  };
-  compAccount?: {
-    balance?: number;
-    pending?: number;
-  };
-  reward?: {
-    total?: number;
-  };
-  // 可添加其他属性如：
-  // name?: string;
-  // email?: string;
-}
 export default function ProfilePage() {
-  const { address } = useAccount();
-  const [balance, setBalance] = useState<string | null>(null);
-  const [userInfo, setUserInfo] = useState<UserInfo>({});
+  const { session, userInfo, setUserInfo } = useAuth();
+  const { data: detaildInfo } = useUserInfo(session?.address);
+
+  // 弹窗显示状态
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showUsdtWithdrawModal, setShowUsdtWithdrawModal] = useState(false);
+  const [showDmWithdrawModal, setShowDmWithdrawModal] = useState(false);
+
+  // 全局提示状态
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // 处理成功回
+  const handleSuccess = (message: string) => {
+    setSuccessMessage(message);
+
+    // 3秒后自动关闭提示并刷新页面
+    setTimeout(() => {
+      setSuccessMessage(null);
+      window.location.reload();
+    }, 3000);
+  };
+
   // 2. 在组件内部定义 stats 状态
   const [stats, setStats] = useState([
     { title: "DM币", value: "0", change: "+0", color: "primary" },
@@ -86,78 +81,61 @@ export default function ProfilePage() {
     { title: "总收益", value: "0", change: "+0", color: "secondary" },
   ]);
   const location = useLocation();
-  // 在组件中使用
-  const { query } = useContractCall(DM_CONTRACT); // 传入具体配置对象
-  
+  // 同步最新数据到Context
+  useEffect(() => {
+    detaildInfo && setUserInfo(detaildInfo);
+    if (userInfo) {
+      setStats([
+        {
+          title: "DM币",
+          value: userInfo.dmAccount?.balance?.toString() || "0",
+          change: `+0`,
+          color: "primary"
+        },
+        {
+          title: "USDT",
+          value: userInfo.usdtAccount?.balance?.toString() || "0",
+          change: `+0`,
+          color: "success"
+        },
+        {
+          title: "DM复利",
+          value: userInfo.compAccount?.balance?.toString() || "0",
+          change: `+0`,
+          color: "warning"
+        },
+        {
+          title: "总收益",
+          value: userInfo.reward?.total?.toString() || "0",
+          change: `+0`,
+          color: "secondary"
+        }
+      ]);
+    }
+
+  }, [detaildInfo]);
   // 添加 useEffect 执行数据获取
   useEffect(() => {
     console.log("路由变化检测自动登录检测", location.pathname);
     const fetchData = async () => {
       try {
-        const balance = await query('balanceOf', [address]);
-        setBalance(balance.toString()); // 转换为字符串
-        console.log('用户余额:' + address, balance);
       } catch (err) {
         console.error('查询失败:', err);
       }
     };
-    const getUserInfo = async () => {
-      // 1. 添加地址存在性检查
-      if (!address) {
-        console.warn("钱包地址未定义");
-        return;
-      }
-
-      try {
-        // 2. 正确使用params传递参数
-        const userInfoResponse = await apiClient.get<UserInfo>(`user/${address}`);
-        console.log(userInfoResponse);
-        setUserInfo(userInfoResponse.data);
-        setStats([
-          { 
-            title: "DM币", 
-            value: userInfo.dmAccount?.balance?.toString() || "0", 
-            change: `+0`, 
-            color: "primary" 
-          },
-          { 
-            title: "USDT", 
-            value: userInfo.usdtAccount?.balance?.toString() || "0", 
-            change: `+0`, 
-            color: "success" 
-          },
-          { 
-            title: "DM复利", 
-            value: userInfo.compAccount?.balance?.toString() || "0", 
-            change: `+0`, 
-            color: "warning" 
-          },
-          { 
-            title: "总收益", 
-            value: userInfo.reward?.total?.toString() || "0", 
-            change: `+0`, 
-            color: "secondary" 
-          }
-        ]);
-      } catch (error) {
-        setUserInfo({});
-        // 3. 添加错误处理
-        console.error("获取用户信息失败:", error);
-      }
-    };
-    
     fetchData();
-    getUserInfo();
+  }, [location]);
 
-
-    
-  }, [location, address]); // 4. 添加address依赖
-
-  
 
   return (
     <DefaultLayout>
       <section className="flex flex-col items-center gap-2 bg-[#000040]">
+        {/* 全局成功提示 */}
+        {successMessage && (
+          <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg">
+            {successMessage}
+          </div>
+        )}
         <Card className="rounded-t-none rounded-b-[24px] w-full"
           style={{
             background: 'linear-gradient(90deg, #6226CD, #D41E7F)',
@@ -178,15 +156,16 @@ export default function ProfilePage() {
                 <h5 className="text-small tracking-tight text-default-400">@BSCScan Address</h5>
               </div>
             </div>
-            <Switch defaultSelected color="success">
-            </Switch>
+            <Button isIconOnly aria-label="Like" color="success">
+              <NodeIcon />
+            </Button>
           </CardHeader>
           <CardBody className="px-3 py-0 text-small text-default-400">
             <Slider
               className="max-w-md"
               defaultValue={0}
               formatOptions={{ style: "percent" }}
-              label="LV0"
+              label={`LV${userInfo?.level ?? 0}`}
               marks={[
                 {
                   value: 0,
@@ -220,17 +199,17 @@ export default function ProfilePage() {
             />
             <span className="pt-2">
               <span aria-label="wallet" className="py-2" role="img">
-                <WalletIcon />#{address}
+                <WalletIcon />#{session?.address}
               </span>
             </span>
           </CardBody>
           <CardFooter className="gap-3">
             <div className="flex gap-1">
-              <p className="font-semibold text-default-400 text-small">{balance}</p>
+              <p className="font-semibold text-default-400 text-small">{userInfo?.dmAccount?.balance ?? 0}</p>
               <p className=" text-default-400 text-small">DM Token</p>
             </div>
             <div className="flex gap-1">
-              <p className="font-semibold text-default-400 text-small">{userInfo.performance?.payment ?? 0}</p>
+              <p className="font-semibold text-default-400 text-small">${userInfo?.performance?.payment ?? 0}</p>
               <p className="text-default-400 text-small">Performance</p>
             </div>
           </CardFooter>
@@ -273,6 +252,30 @@ export default function ProfilePage() {
             }}
             onAction={(key) => alert(key)}
           >
+            {/* 更新按钮和状态提示 */}
+            <ListboxItem
+              key="directInviter"
+              startContent={
+                <IconWrapper className="bg-primary/10 text-primary">
+                  <InviteIcon className="text-lg" />
+                </IconWrapper>
+              }
+            >
+              填写邀请人
+              {/* {isUpdating ? "更新中..." : "填写邀请人"} */}
+              {/* {updateSuccess && (
+              <Chip color="success" variant="flat">
+                <CheckCircle className="mr-1" size={16} /> 更新成功
+              </Chip>
+            )}
+            
+            {updateError && (
+              <Chip color="danger" variant="flat">
+                <AlertCircle className="mr-1" size={16} /> {updateError}
+              </Chip>
+            )} */}
+            </ListboxItem>
+
             {/* 我的订单 */}
             <ListboxItem
               key="orders"
@@ -376,6 +379,29 @@ export default function ProfilePage() {
         <div className="text-center text-sm text-slate-400">
           <p>© 2025 用户中心 | 当前版本 v1.2.4</p>
         </div>
+
+               {/* 在需要的地方添加触发弹窗的按钮 */}
+      <Button onClick={() => setShowInviteModal(true)}>填写邀请码</Button>
+      <Button onClick={() => setShowUsdtWithdrawModal(true)}>USDT提现</Button>
+      <Button onClick={() => setShowDmWithdrawModal(true)}>DM提现</Button>
+        {/* 弹窗组件 */}
+      <InviteModal 
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        onSuccess={handleSuccess}
+      />
+      
+      <UsdtWithdrawModal 
+        isOpen={showUsdtWithdrawModal}
+        onClose={() => setShowUsdtWithdrawModal(false)}
+        onSuccess={handleSuccess}
+      />
+      
+      <DmWithdrawModal 
+        isOpen={showDmWithdrawModal}
+        onClose={() => setShowDmWithdrawModal(false)}
+        onSuccess={handleSuccess}
+      />
       </section>
     </DefaultLayout>
   );
