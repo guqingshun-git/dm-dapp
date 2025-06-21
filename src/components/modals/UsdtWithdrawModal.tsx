@@ -111,20 +111,20 @@ const UsdtWithdrawModal: React.FC<UsdtWithdrawModalProps> = ({
           className="mb-4 bg-gray-800 border-gray-700 text-white"
         />
         
-        <Input
+        {/* <Input
           label="钱包地址"
           placeholder="请输入接收USDT的钱包地址"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           variant="bordered"
           className="mb-4 bg-gray-800 border-gray-700 text-white"
-        />
+        /> */}
         
         <div className="text-xs text-gray-400 mb-4">
           <p>提示：</p>
           <ul className="list-disc pl-5 mt-1 space-y-1">
             <li>提现手续费为1 USDT</li>
-            <li>提现到账时间约为5-30分钟</li>
+            <li>提现到账时间区块链确认即到账</li>
             <li>请确保钱包地址正确，错误地址将导致资产损失</li>
           </ul>
         </div>

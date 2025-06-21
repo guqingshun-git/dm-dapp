@@ -137,6 +137,14 @@ export default function IndexPage() {
 
   // 合约写入方法
   const { writeContractAsync } = useWriteContract();
+
+  // 认证成功后执行待处理订单
+  useEffect(() => {
+    if (session.address && pendingOrder !== null) {
+      // executeOrder(pendingOrder);
+    }
+  }, [session.address, pendingOrder]);
+
   // 轮询检查订单状态
   useEffect(() => {
     if (!currentTxHash) return;
@@ -225,26 +233,7 @@ export default function IndexPage() {
     };
   }, [currentTxHash]);
 
-  // 创建后端订单的函数（现在直接调用，不依赖事件监听）
-  const createBackendOrder = async (txHash: string, amount: bigint) => {
-    try {
-      await apiClient.post('order', {
-        txHash,
-        amount: amount.toString(),
-        userAddress: session?.address
-      }, {
-        timeout: 15000 // 显式设置15秒超时（TP默认10秒）
-      });
-      console.log('后端订单创建请求已发送');
-    } catch (error) {
-      // 错误提示移除换行符
-      addToast({
-        title: `订单同步失败 TX: ${txHash.slice(0, 12)}...`,
-        description: '请稍后重试或联系客服',
-        color: 'warning'
-      });
-    }
-  };
+
 
   // 安全购买处理函数
   const handleSecureBuy = async (orderId: number) => {
@@ -254,7 +243,7 @@ export default function IndexPage() {
       await signIn();
       return;
     }
-    if (userInfo?.directInviter === null) {
+    if (!userInfo?.directInviter) {
       addToast({
         title: '请先绑定邀请人',
         description: '请到个人中心页面操作',
@@ -272,33 +261,6 @@ export default function IndexPage() {
     });
     executeOrder(orderId);
   };
-  // 授权函数
-  const approveUSDT = async (amount: bigint) => {
-    setIsApproving(true);
-    console.log(isApproving)
-    try {
-      await writeContractAsync({
-        address: USDT_CONTRACT.address,
-        abi: USDT_CONTRACT.abi,
-        functionName: 'approve',
-        args: [DM_CONTRACT.address, amount]
-      });
-      return true;
-    } catch (error) {
-      setIsApproving(false);
-      console.error('授权失败:', error);
-      return false;
-    } finally {
-      setIsApproving(false);
-    }
-  };
-  // 认证成功后执行待处理订单
-  useEffect(() => {
-    if (session.address && pendingOrder !== null) {
-      // executeOrder(pendingOrder);
-    }
-  }, [session.address, pendingOrder]);
-
   // 实际购买逻辑：调用智能合约创建订单
   const executeOrder = async (orderId: number) => {
     setIsLoading(true);
@@ -413,7 +375,46 @@ export default function IndexPage() {
       setCurrentTxHash(null);
     }
   };
-
+  // 授权函数
+  const approveUSDT = async (amount: bigint) => {
+    setIsApproving(true);
+    console.log(isApproving)
+    try {
+      await writeContractAsync({
+        address: USDT_CONTRACT.address,
+        abi: USDT_CONTRACT.abi,
+        functionName: 'approve',
+        args: [DM_CONTRACT.address, amount]
+      });
+      return true;
+    } catch (error) {
+      setIsApproving(false);
+      console.error('授权失败:', error);
+      return false;
+    } finally {
+      setIsApproving(false);
+    }
+  };
+  // 创建后端订单的函数（现在直接调用，不依赖事件监听）
+  const createBackendOrder = async (txHash: string, amount: bigint) => {
+    try {
+      await apiClient.post('order', {
+        txHash,
+        amount: amount.toString(),
+        userAddress: session?.address
+      }, {
+        timeout: 15000 // 显式设置15秒超时（TP默认10秒）
+      });
+      console.log('后端订单创建请求已发送');
+    } catch (error) {
+      // 错误提示移除换行符
+      addToast({
+        title: `订单同步失败 TX: ${txHash.slice(0, 12)}...`,
+        description: '请稍后重试或联系客服',
+        color: 'warning'
+      });
+    }
+  };
   // 渲染订单卡片
   const renderOrderCard = (order: typeof orders[0]) => (
     <Card className="py-4 bg-transparent border border-purple-500" key={order.id}>

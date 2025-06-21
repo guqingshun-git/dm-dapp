@@ -6,28 +6,32 @@ import { useUserInfo } from '@/hooks/useUserInfo';
 import DefaultLayout from "@/layouts/default";
 import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Avatar } from "@heroui/avatar";
-import { Chip } from "@heroui/chip";
 import { Listbox, ListboxItem } from "@heroui/listbox";
+import { addToast } from "@heroui/toast";
 import { Button } from "@heroui/button";
 import { Slider } from "@heroui/slider";
 
 import InviteModal from '@/components/modals/InviteModal';
 import UsdtWithdrawModal from '@/components/modals/UsdtWithdrawModal';
 import DmWithdrawModal from '@/components/modals/DmWithdrawModal';
-
+import DmTransferModal from '@/components/modals/DmTransferModal';
+import AccountTransferModal from "@/components/modals/AccountTransferModal";
 import {
-  ShoppingBag as ShoppingBagIcon,
+  // ShoppingBag as ShoppingBagIcon,
   Headphones as HeadphonesIcon,
-  Key as KeyIcon,
+  // Key as KeyIcon,
   ShoppingCart as OrderIcon,
-  ChevronRight as RightIcon,
   Ticket as TicketIcon,
-  Shield as ShieldIcon,
+  // Shield as ShieldIcon,
   LogOut as LogOutIcon,
   Wallet as WalletIcon,
   GitFork as NodeIcon,
-  MailPlus as InviteIcon,
+  Share as InviteIcon,
+  Send as TransferIcon,
+  ArrowRightLeft as SwapIcon
 } from "lucide-react";
+
+
 
 
 interface IconWrapperProps {
@@ -51,13 +55,15 @@ const ItemCounter = ({ number }: ItemCounterProps) => (
 );
 
 export default function ProfilePage() {
-  const { session, userInfo, setUserInfo } = useAuth();
+  const { session, userInfo, setUserInfo, signOut } = useAuth();
   const { data: detaildInfo } = useUserInfo(session?.address);
 
   // 弹窗显示状态
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showUsdtWithdrawModal, setShowUsdtWithdrawModal] = useState(false);
   const [showDmWithdrawModal, setShowDmWithdrawModal] = useState(false);
+  const [showDmTransferModal, setShowDmTransferModal] = useState(false);
+  const [showAccountTransferModal, setShowAccountTransferModal] = useState(false);
 
   // 全局提示状态
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -75,10 +81,10 @@ export default function ProfilePage() {
 
   // 2. 在组件内部定义 stats 状态
   const [stats, setStats] = useState([
-    { title: "DM币", value: "0", change: "+0", color: "primary" },
-    { title: "USDT", value: "0", change: "+0", color: "success" },
-    { title: "DM复利", value: "0", change: "+0", color: "warning" },
-    { title: "总收益", value: "0", change: "+0", color: "secondary" },
+    { title: "DM币", key: "DmWithdraw", value: "0", color: "primary" },
+    { title: "USDT", key: "UsdtWithdraw", value: "0", color: "success" },
+    { title: "DM复利", key: "compWithdraw", value: "0", color: "warning" },
+    { title: "总收益", key: "$", value: "0", color: "secondary" },
   ]);
   const location = useLocation();
   // 同步最新数据到Context
@@ -88,26 +94,26 @@ export default function ProfilePage() {
       setStats([
         {
           title: "DM币",
+          key: "dmWithdraw",
           value: userInfo.dmAccount?.balance?.toString() || "0",
-          change: `+0`,
           color: "primary"
         },
         {
           title: "USDT",
+          key: "usdtWithdraw",
           value: userInfo.usdtAccount?.balance?.toString() || "0",
-          change: `+0`,
           color: "success"
         },
         {
           title: "DM复利",
+          key: "compWithdraw",
           value: userInfo.compAccount?.balance?.toString() || "0",
-          change: `+0`,
           color: "warning"
         },
         {
           title: "总收益",
+          key: "$",
           value: userInfo.reward?.total?.toString() || "0",
-          change: `+0`,
           color: "secondary"
         }
       ]);
@@ -126,7 +132,42 @@ export default function ProfilePage() {
     fetchData();
   }, [location]);
 
+  // 点击
+  const itemAction = async (key: React.Key) => {
+    key = key.toString()
+    console.log(key)
+    if (key === "dmWithdraw") {
+      setShowDmWithdrawModal(true)
+    }
+    if (key === "usdtWithdraw") {
+      setShowUsdtWithdrawModal(true);
+    }
+    if (key === "transferDm") {
+      setShowDmTransferModal(true);
+    }
+    if (key === "accountTransfer") {
+      setShowAccountTransferModal(true);
+    }
+    if (key === "directInviter" && !userInfo?.directInviter) {
+      setShowInviteModal(true)
+    }
+    if (key === "logout") {
+      signOut();
+      return;
+    }
 
+
+    try {
+
+      console.log('后端创建请求已发送');
+    } catch (error) {
+      addToast({
+        title: ``,
+        description: '请稍后重试或联系客服',
+        color: 'warning'
+      });
+    }
+  };
   return (
     <DefaultLayout>
       <section className="flex flex-col items-center gap-2 bg-[#000040]">
@@ -217,7 +258,7 @@ export default function ProfilePage() {
 
         {/* 统计数据卡片 - 应用深色半透明背景 */}
         <div className="w-full grid grid-cols-2 gap-4 p-4">
-          {stats.map((stat, index) => (
+          {stats.map((stat, index) => ( 
             <Card key={index} className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm"
               style={{
                 backgroundImage: "url('/bg.jpeg')", // 确保图片在public目录
@@ -228,15 +269,17 @@ export default function ProfilePage() {
               }}
             >
               <CardBody className="p-4">
-                <p className="text-slate-300 text-sm">{stat.title}</p>
+                <div className="flex justify-between items-center">
+                  <p className="text-slate-300 text-sm w-full">{stat.title}</p>
+                  {stat.key !== "$" && ( // 条件渲染：仅当 stat.key 非空时显示按钮
+                    <Button color="secondary" variant="shadow" size="sm" onClick={() => itemAction(stat.key)} >提现</Button>
+                  )}
+                  {stat.key === "$" && ( // 条件渲染：仅当 stat.key 非空时显示按钮
+                    <Button color="warning" variant="shadow" size="sm" isIconOnly onClick={() => itemAction(stat.key)} >$</Button>
+                  )}
+                </div>
                 <div className="flex items-baseline mt-2">
                   <span className="text-2xl font-bold text-white">{stat.value}</span>
-                  <Chip
-                    size="sm"
-                    className="ml-2 bg-slate-700 text-slate-200"
-                  >
-                    {stat.change}
-                  </Chip>
                 </div>
               </CardBody>
             </Card>
@@ -250,7 +293,7 @@ export default function ProfilePage() {
             itemClasses={{
               base: "px-3 first:rounded-t-medium last:rounded-b-medium rounded-none gap-3 h-14 data-[hover=true]:bg-default-100/80",
             }}
-            onAction={(key) => alert(key)}
+            onAction={(key) => itemAction(key)}
           >
             {/* 更新按钮和状态提示 */}
             <ListboxItem
@@ -260,24 +303,32 @@ export default function ProfilePage() {
                   <InviteIcon className="text-lg" />
                 </IconWrapper>
               }
+              endContent={<span className="text-small text-default-400">{userInfo?.directInviter ? userInfo?.directInviter?.slice(0, 18) + "..." : "填写邀请人"}</span>}
             >
-              填写邀请人
-              {/* {isUpdating ? "更新中..." : "填写邀请人"} */}
-              {/* {updateSuccess && (
-              <Chip color="success" variant="flat">
-                <CheckCircle className="mr-1" size={16} /> 更新成功
-              </Chip>
-            )}
-            
-            {updateError && (
-              <Chip color="danger" variant="flat">
-                <AlertCircle className="mr-1" size={16} /> {updateError}
-              </Chip>
-            )} */}
+              邀请人
             </ListboxItem>
-
-            {/* 我的订单 */}
             <ListboxItem
+              key="transferDm"
+              startContent={
+                <IconWrapper className="bg-primary/10 text-primary">
+                  <TransferIcon className="text-lg" />
+                </IconWrapper>
+              }
+            >
+            DMToken 转账
+            </ListboxItem>
+            <ListboxItem
+              key="accountTransfer"
+              startContent={
+                <IconWrapper className="bg-primary/10 text-primary">
+                  <SwapIcon className="text-lg" />
+                </IconWrapper>
+              }
+            >
+            账户划转
+            </ListboxItem>
+            {/* 我的订单 */}
+            {/* <ListboxItem
               key="orders"
               startContent={
                 <IconWrapper className="bg-primary/10 text-primary">
@@ -286,22 +337,10 @@ export default function ProfilePage() {
               }
             >
               我的订单
-            </ListboxItem>
-
-            {/* 客服中心 */}
-            <ListboxItem
-              key="customer_service"
-              startContent={
-                <IconWrapper className="bg-success/10 text-success">
-                  <HeadphonesIcon className="text-lg" />
-                </IconWrapper>
-              }
-            >
-              客服中心
-            </ListboxItem>
+            </ListboxItem> */}
 
             {/* 修改密码 */}
-            <ListboxItem
+            {/* <ListboxItem
               key="change_password"
               startContent={
                 <IconWrapper className="bg-warning/10 text-warning">
@@ -310,7 +349,7 @@ export default function ProfilePage() {
               }
             >
               修改密码
-            </ListboxItem>
+            </ListboxItem> */}
 
             {/* 节点认证 */}
             <ListboxItem
@@ -320,7 +359,7 @@ export default function ProfilePage() {
                   <NodeIcon className="text-lg" />
                 </IconWrapper>
               }
-              endContent={<span className="text-small text-default-400 flex items-center items-end">去认证<RightIcon className="" /></span>}
+              endContent={<span className="text-small text-default-400 flex items-center items-end">去认证</span>}
             >
               节点认证
             </ListboxItem>
@@ -346,13 +385,13 @@ export default function ProfilePage() {
                   <TicketIcon className="text-lg" />
                 </IconWrapper>
               }
-              endContent={<ItemCounter number={82} />}
+              endContent={<ItemCounter number={0} />}
             >
               优惠券
             </ListboxItem>
 
             {/* 账户安全 */}
-            <ListboxItem
+            {/* <ListboxItem
               key="security"
               startContent={
                 <IconWrapper className="bg-red-500/10 text-red-500">
@@ -361,8 +400,18 @@ export default function ProfilePage() {
               }
             >
               账户安全
+            </ListboxItem> */}
+            {/* 客服中心 */}
+            <ListboxItem
+              key="customer_service"
+              startContent={
+                <IconWrapper className="bg-success/10 text-success">
+                  <HeadphonesIcon className="text-lg" />
+                </IconWrapper>
+              }
+            >
+              客服中心
             </ListboxItem>
-
             {/* 退出登录 */}
             <ListboxItem
               key="logout"
@@ -380,28 +429,37 @@ export default function ProfilePage() {
           <p>© 2025 用户中心 | 当前版本 v1.2.4</p>
         </div>
 
-               {/* 在需要的地方添加触发弹窗的按钮 */}
-      <Button onClick={() => setShowInviteModal(true)}>填写邀请码</Button>
-      <Button onClick={() => setShowUsdtWithdrawModal(true)}>USDT提现</Button>
-      <Button onClick={() => setShowDmWithdrawModal(true)}>DM提现</Button>
+
         {/* 弹窗组件 */}
-      <InviteModal 
-        isOpen={showInviteModal}
-        onClose={() => setShowInviteModal(false)}
-        onSuccess={handleSuccess}
-      />
-      
-      <UsdtWithdrawModal 
-        isOpen={showUsdtWithdrawModal}
-        onClose={() => setShowUsdtWithdrawModal(false)}
-        onSuccess={handleSuccess}
-      />
-      
-      <DmWithdrawModal 
-        isOpen={showDmWithdrawModal}
-        onClose={() => setShowDmWithdrawModal(false)}
-        onSuccess={handleSuccess}
-      />
+        <InviteModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          onSuccess={handleSuccess}
+        />
+
+        <UsdtWithdrawModal
+          isOpen={showUsdtWithdrawModal}
+          onClose={() => setShowUsdtWithdrawModal(false)}
+          onSuccess={handleSuccess}
+        />
+
+        <DmWithdrawModal
+          isOpen={showDmWithdrawModal}
+          onClose={() => setShowDmWithdrawModal(false)}
+          onSuccess={handleSuccess}
+        />
+
+        <DmTransferModal
+          isOpen={showDmTransferModal}
+          onClose={() => setShowDmTransferModal(false)}
+          onSuccess={handleSuccess}
+        />
+
+        <AccountTransferModal
+          isOpen={showAccountTransferModal}
+          onClose={() => setShowAccountTransferModal(false)}
+          onSuccess={handleSuccess}
+        />
       </section>
     </DefaultLayout>
   );
