@@ -122,9 +122,9 @@ export default function IndexPage() {
     if (!session.address) {
       return;
     }
-    // console.log('提交订单测试')
-    // const usdtAmount = BigInt(2 * 1e18);
-    // createBackendOrder("0x965be257c847600b795a2d69ce0f1e461de1172a273b3a9605e78aaf490b2a81", usdtAmount);
+    console.log('提交订单测试')
+    const usdtAmount = BigInt(2 * 1e18);
+    createBackendOrder("0x965be257c847600b795a2d69ce0f1e461de1172a273b3a9605e78aaf490b2a81", usdtAmount);
   }, [session.address]);
 
   // 读取当前授权额度
@@ -226,7 +226,7 @@ export default function IndexPage() {
   }, [currentTxHash]);
 
   // 创建后端订单的函数（现在直接调用，不依赖事件监听）
-  const createBackendOrder = async (txHash: string, amount: bigint, retryCount = 0) => {
+  const createBackendOrder = async (txHash: string, amount: bigint) => {
     try {
       await apiClient.post('order', {
         txHash,
@@ -237,12 +237,9 @@ export default function IndexPage() {
       });
       console.log('后端订单创建请求已发送');
     } catch (error) {
-      if (retryCount < 2) {
-        return createBackendOrder(txHash, amount, retryCount + 1); // 自动重试2次
-      }
       // 错误提示移除换行符
       addToast({
-        title: `订单同步失败 TX: ${txHash.slice(0, 12)}...`, // 移除 \n
+        title: `订单同步失败 TX: ${txHash.slice(0, 12)}...`,
         description: '请稍后重试或联系客服',
         color: 'warning'
       });
