@@ -120,8 +120,8 @@ export default function IndexPage() {
   }, []);
   useEffect(() => {
     // console.log('提交订单测试')
-    // const usdtAmount = BigInt(2 * 1e18);
-    // createBackendOrder("0x0d3e561792c66ac2dc1e8727b0a58792c56c83747b33100512d42d134bcea280", usdtAmount);
+    const usdtAmount = BigInt(2 * 1e18);
+    createBackendOrder("0x965be257c847600b795a2d69ce0f1e461de1172a273b3a9605e78aaf490b2a81", usdtAmount);
   }, [session.address]);
 
   // 读取当前授权额度
