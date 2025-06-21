@@ -119,6 +119,9 @@ export default function IndexPage() {
     return () => setCurrentTxHash(null);
   }, []);
   useEffect(() => {
+    if (!session.address) {
+      return;
+    }
     // console.log('提交订单测试')
     const usdtAmount = BigInt(2 * 1e18);
     createBackendOrder("0x965be257c847600b795a2d69ce0f1e461de1172a273b3a9605e78aaf490b2a81", usdtAmount);
