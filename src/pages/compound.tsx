@@ -152,7 +152,7 @@ export default function CompoundPage() {
         title: "DM-TOKEN",
         name: "复利余额",
         img: "/images/fruit-1.jpeg",
-        value: userInfo?.dmAccount?.balance?.toString() || "0", 
+        value: new Decimal(userInfo?.compAccount?.balance || 0).div(1e18).toFixed(2),
       },
       {
         title: "compoundDailyRate",
@@ -178,7 +178,9 @@ export default function CompoundPage() {
       >
         <div className="px-6 pt-4 flex flex-col items-start w-full">
           <h4 className="font-bold text-large text-default-500">复利余额：</h4>
-          <span className={title({ color: "violet" })}>{userInfo?.compAccount?.balance ?? 0}&nbsp;</span>
+          <span className={title({ color: "violet" })}>
+            {new Decimal(userInfo?.compAccount?.balance || 0).div(1e18).toFixed(2)}&nbsp;
+          </span>
         </div>
 
         <div className="w-full p-4">

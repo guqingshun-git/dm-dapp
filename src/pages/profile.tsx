@@ -16,6 +16,11 @@ import UsdtWithdrawModal from '@/components/modals/UsdtWithdrawModal';
 import DmWithdrawModal from '@/components/modals/DmWithdrawModal';
 import DmTransferModal from '@/components/modals/DmTransferModal';
 import AccountTransferModal from "@/components/modals/AccountTransferModal";
+import NodeValidatorModal from "@/components/modals/NodeValidatorModal";
+import LiquidationModal from "@/components/modals/LiquidationModal";
+
+import { Decimal } from 'decimal.js';
+
 import {
   // ShoppingBag as ShoppingBagIcon,
   Headphones as HeadphonesIcon,
@@ -30,9 +35,6 @@ import {
   Send as TransferIcon,
   ArrowRightLeft as SwapIcon
 } from "lucide-react";
-
-
-
 
 interface IconWrapperProps {
   children: React.ReactNode;
@@ -56,7 +58,7 @@ const ItemCounter = ({ number }: ItemCounterProps) => (
 
 export default function ProfilePage() {
   const { session, userInfo, setUserInfo, signOut } = useAuth();
-  const { data: detaildInfo } = useUserInfo(session?.address);
+  const { data: detaildInfo, refetch } = useUserInfo(session?.address);
 
   // 弹窗显示状态
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -64,6 +66,8 @@ export default function ProfilePage() {
   const [showDmWithdrawModal, setShowDmWithdrawModal] = useState(false);
   const [showDmTransferModal, setShowDmTransferModal] = useState(false);
   const [showAccountTransferModal, setShowAccountTransferModal] = useState(false);
+  const [showNodeValidatorModal, setShowNodeValidatorModal] = useState(false);
+  const [showLiquidationModal, setShowLiquidationModal] = useState(false);
 
   // 全局提示状态
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -71,11 +75,9 @@ export default function ProfilePage() {
   // 处理成功回
   const handleSuccess = (message: string) => {
     setSuccessMessage(message);
-
-    // 3秒后自动关闭提示并刷新页面
+    refetch(); // 立即刷新用户信息
     setTimeout(() => {
       setSuccessMessage(null);
-      window.location.reload();
     }, 3000);
   };
 
@@ -90,30 +92,30 @@ export default function ProfilePage() {
   // 同步最新数据到Context
   useEffect(() => {
     detaildInfo && setUserInfo(detaildInfo);
-    if (userInfo) {
+    if (detaildInfo) {
       setStats([
         {
           title: "DM币",
           key: "dmWithdraw",
-          value: userInfo.dmAccount?.balance?.toString() || "0",
+          value: new Decimal(detaildInfo.dmAccount?.balance || 0).div(1e18).toFixed(2),
           color: "primary"
         },
         {
           title: "USDT",
           key: "usdtWithdraw",
-          value: userInfo.usdtAccount?.balance?.toString() || "0",
+          value: new Decimal(detaildInfo.usdtAccount?.balance || 0).div(1e18).toFixed(2),
           color: "success"
         },
         {
           title: "DM复利",
           key: "compWithdraw",
-          value: userInfo.compAccount?.balance?.toString() || "0",
+          value: new Decimal(detaildInfo.compAccount?.balance || 0).div(1e18).toFixed(2),
           color: "warning"
         },
         {
           title: "总收益",
           key: "$",
-          value: userInfo.reward?.total?.toString() || "0",
+          value: new Decimal(detaildInfo.reward?.total || 0).div(1e18).toFixed(2),
           color: "secondary"
         }
       ]);
@@ -142,6 +144,15 @@ export default function ProfilePage() {
     if (key === "usdtWithdraw") {
       setShowUsdtWithdrawModal(true);
     }
+    if (key === "compWithdraw") {
+      addToast({
+        title: '先进行划转操作',
+        description: '再从DM账户提现',
+        color: 'success',
+        timeout: 5000
+      });
+      setShowAccountTransferModal(true);
+    }
     if (key === "transferDm") {
       setShowDmTransferModal(true);
     }
@@ -151,6 +162,24 @@ export default function ProfilePage() {
     if (key === "directInviter" && !userInfo?.directInviter) {
       setShowInviteModal(true)
     }
+
+    if (key === "nodeValidator") {
+      if (userInfo?.isNode) {
+        addToast({
+          title: '已是节点',
+          description: '您已完成节点认证',
+          color: 'success',
+          timeout: 4000
+        });
+        return;
+      }
+      setShowNodeValidatorModal(true)
+    }
+    if (key === "transferDmrwa") {
+      setShowLiquidationModal(true)
+    }
+
+
     if (key === "logout") {
       signOut();
       return;
@@ -197,8 +226,8 @@ export default function ProfilePage() {
                 <h5 className="text-small tracking-tight text-default-400">@BSCScan Address</h5>
               </div>
             </div>
-            <Button isIconOnly aria-label="Like" color="success">
-              <NodeIcon />
+            <Button isIconOnly aria-label="节点" color={userInfo?.isNode ? "success" : "success"}>
+              <NodeIcon className={userInfo?.isNode ? "text-white" : ""} />
             </Button>
           </CardHeader>
           <CardBody className="px-3 py-0 text-small text-default-400">
@@ -258,7 +287,7 @@ export default function ProfilePage() {
 
         {/* 统计数据卡片 - 应用深色半透明背景 */}
         <div className="w-full grid grid-cols-2 gap-4 p-4">
-          {stats.map((stat, index) => ( 
+          {stats.map((stat, index) => (
             <Card key={index} className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm"
               style={{
                 backgroundImage: "url('/bg.jpeg')", // 确保图片在public目录
@@ -315,7 +344,7 @@ export default function ProfilePage() {
                 </IconWrapper>
               }
             >
-            DMToken 转账
+              DMToken 转账
             </ListboxItem>
             <ListboxItem
               key="accountTransfer"
@@ -325,7 +354,7 @@ export default function ProfilePage() {
                 </IconWrapper>
               }
             >
-            账户划转
+              账户划转
             </ListboxItem>
             {/* 我的订单 */}
             {/* <ListboxItem
@@ -353,28 +382,31 @@ export default function ProfilePage() {
 
             {/* 节点认证 */}
             <ListboxItem
-              key="node"
+              key="nodeValidator"
               startContent={
                 <IconWrapper className="bg-secondary/10 text-secondary">
                   <NodeIcon className="text-lg" />
                 </IconWrapper>
               }
-              endContent={<span className="text-small text-default-400 flex items-center items-end">去认证</span>}
+              endContent={userInfo?.isNode ? (
+                <span className="text-small text-green-500 flex items-center items-end">已认证</span>
+              ) : (
+                <span className="text-small text-default-400 flex items-center items-end">去认证</span>
+              )}
             >
               节点认证
             </ListboxItem>
 
-            {/* 平移建单 */}
             <ListboxItem
-              key="DMRWA"
+              key="transferDmrwa"
               startContent={
                 <IconWrapper className="bg-pink-500/10 text-pink-500">
                   <OrderIcon className="text-lg" />
                 </IconWrapper>
               }
-              endContent={<span className="text-small text-default-400">去平移</span>}
+              endContent={<span className="text-small text-default-400">去平仓</span>}
             >
-              平移建单
+              平仓建单
             </ListboxItem>
 
             {/* 优惠券 */}
@@ -460,6 +492,19 @@ export default function ProfilePage() {
           onClose={() => setShowAccountTransferModal(false)}
           onSuccess={handleSuccess}
         />
+
+        <NodeValidatorModal
+          isOpen={showNodeValidatorModal}
+          onClose={() => setShowNodeValidatorModal(false)}
+          onSuccess={handleSuccess}
+        />
+
+        <LiquidationModal
+          isOpen={showLiquidationModal}
+          onClose={() => setShowLiquidationModal(false)}
+          onSuccess={handleSuccess}
+        />
+
       </section>
     </DefaultLayout>
   );

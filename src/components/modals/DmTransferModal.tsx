@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { useAuth } from '@/providers/AuthProvider';
-// import { transferDm } from '@/api/api';
+import { transferDm } from '@/api/api';
+import Decimal from 'decimal.js'; // 统一使用Decimal.js进行精度计算
 
 interface DmTransferModalProps {
   isOpen: boolean;
@@ -23,7 +24,8 @@ const DmTransferModal: React.FC<DmTransferModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [animationClass, setAnimationClass] = useState('');
 
-  const dmBalance = userInfo?.dmAccount?.balance || 0;
+  // 使用Decimal处理余额显示和计算
+  const dmBalance = new Decimal(userInfo?.dmAccount?.balance || 0);
 
   useEffect(() => {
     if (isOpen) {
@@ -41,19 +43,11 @@ const DmTransferModal: React.FC<DmTransferModalProps> = ({
       setError('用户未登录');
       return;
     }
-
-    const amountNum = parseFloat(amount);
     
-    if (isNaN(amountNum) || amountNum <= 0) {
+    if (!amount) {
       setError('请输入有效的转账金额');
       return;
     }
-    
-    // if (amountNum > dmBalance) {
-    //   setError(`转账金额不能超过可用余额 (${dmBalance} DM)`);
-    //   return;
-    // }
-    
     if (!address.trim()) {
       setError('请输入钱包地址');
       return;
@@ -63,15 +57,23 @@ const DmTransferModal: React.FC<DmTransferModalProps> = ({
     setError(null);
     
     try {
-      // 创建BigInt金额（假设DM代币有18位小数）
-      // const bigIntAmount = BigInt(amountNum * 10**18);
-      
-      // // 调用API执行转账
-      // await withdrawDm(session.address, {
-      //   amount: bigIntAmount.toString(),
-      //   withdrawAddress: address
-      // });
-      
+      // 使用Decimal处理金额计算，避免精度丢失
+      const amountDecimal = new Decimal(amount);
+      if (amountDecimal.isNaN() || amountDecimal.lte(0)) {
+        setError('请输入有效的转账金额');
+        return;
+      }
+      if (amountDecimal.times(1e18).gt(dmBalance)) {
+        setError(`转账金额不能超过可用余额 (${dmBalance.div(1e18).toFixed(2)} DM)`);
+        return;
+      }
+      const amountWithPrecision = amountDecimal.times(1e18).toFixed(0);
+      // 直接调用API执行转账
+      await transferDm(
+        session.address,
+        address,
+        BigInt(amountWithPrecision)
+      );
       onSuccess('DM转账申请已提交！');
       onClose();
       setAmount('');
@@ -98,15 +100,19 @@ const DmTransferModal: React.FC<DmTransferModalProps> = ({
         </div>
         
         <div className="text-gray-300 mb-4">
-          <p>可用余额: <span className="text-white font-bold">{dmBalance} DM</span></p>
+          <p>可用余额: <span className="text-white font-bold">{dmBalance.div(1e18).toFixed(2)} DM</span></p>
         </div>
         
         <Input
           label="转账金额"
           placeholder="请输入转账金额"
-          type="number"
+          type="text" // 改为text类型，避免number类型的自动转换
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => {
+            // 只允许输入数字和小数点
+            const value = e.target.value.replace(/[^0-9.]/g, '');
+            setAmount(value);
+          }}
           variant="bordered"
           className="mb-4 bg-gray-800 border-gray-700 text-white"
         />
@@ -123,9 +129,9 @@ const DmTransferModal: React.FC<DmTransferModalProps> = ({
         <div className="text-xs text-gray-400 mb-4">
           <p>提示：</p>
           <ul className="list-disc pl-5 mt-1 space-y-1">
-            {/* <li>转账手续费为%5</li> */}
             <li>转账到账时间区块链确认即到账</li>
             <li>请确保钱包支持BSC链上的DM代币</li>
+            <li>代币精度：18位小数</li>
           </ul>
         </div>
         

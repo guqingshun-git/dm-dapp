@@ -15,8 +15,8 @@ import { Avatar } from "@heroui/avatar";
 import { User } from "@heroui/user";
 import { Alert } from "@heroui/alert";
 import {
-   Wallet as WalletIcon,
-  GitFork as NodeIcon, 
+  Wallet as WalletIcon,
+  GitFork as NodeIcon,
 } from "lucide-react";
 import {
   Table,
@@ -62,7 +62,7 @@ export default function TeamPage() {
   const [balance] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>({});
   const location = useLocation();
-  
+
   // 团队数据状态
   const [teamInfo, setTeamInfo] = useState<TeamInfo | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]); // 初始化为空数组
@@ -79,7 +79,7 @@ export default function TeamPage() {
         if (address) {
           // const balance = await query('balanceOf', [address]);
           // setBalance(balance.toString());
-          
+
           const userInfoResponse = await apiClient.get(`user/${address}`);
           setUserInfo(userInfoResponse.data);
         }
@@ -87,7 +87,7 @@ export default function TeamPage() {
         console.error('数据获取失败:', err);
       }
     };
-    
+
     fetchData();
   }, [location, address]);
 
@@ -95,14 +95,14 @@ export default function TeamPage() {
   const fetchTeamData = useCallback(async (areaIndex: number, pageNum: number = 1) => {
     try {
       setIsLoading(true);
-      
+
       // 首次加载时获取团队统计信息
       if (pageNum === 1) {
         const teamResponse = await apiClient.get(`/team/${address}`);
         setTeamInfo(teamResponse.data);
         console.log(teamResponse)
       }
-      
+
       // 获取团队成员
       const response = await apiClient.get(`/team/${address}/members`, {
         params: {
@@ -111,18 +111,18 @@ export default function TeamPage() {
           limit
         }
       });
-      
+
       // 安全访问members属性
       const members = response?.data?.members || []; // 使用空数组作为默认值
       console.log(members)
       const hasMoreData = response?.data?.hasMore ?? false; // 安全访问hasMore属性
-      
+
       if (pageNum === 1) {
         setTeamMembers(members);
       } else {
         setTeamMembers(prev => [...prev, ...members]);
       }
-      
+
       setHasMore(hasMoreData);
       setPage(pageNum);
       setIsLoading(false);
@@ -147,7 +147,7 @@ export default function TeamPage() {
   // 区域切换处理
   const handleAreaChange = (areaIndex: number) => {
     const areaIndexCount = (teamInfo?.areas as { count: number }[])?.[areaIndex]?.count || 0;
-    if(areaIndexCount == 0){
+    if (areaIndexCount == 0) {
       throw new Error('区无人');
       <Alert title="{`区无人`}" />
     }
@@ -158,8 +158,8 @@ export default function TeamPage() {
   };
 
   // 无限滚动加载更多
-  const [loaderRef, scrollerRef] = useInfiniteScroll({ 
-    hasMore, 
+  const [loaderRef, scrollerRef] = useInfiniteScroll({
+    hasMore,
     onLoadMore: () => fetchTeamData(activeArea, page + 1)
   });
 
@@ -179,8 +179,8 @@ export default function TeamPage() {
             avatarProps={{ radius: "lg", src: user.avatar || "/logo.png" }}
             name={user.username || "未知用户"}
           >
-            {user.walletAddress ? 
-              `${user.walletAddress.substring(0, 6)}...${user.walletAddress.substring(38)}` : 
+            {user.walletAddress ?
+              `${user.walletAddress.substring(0, 6)}...${user.walletAddress.substring(38)}` :
               "未知地址"}
           </User>
         );
@@ -196,7 +196,7 @@ export default function TeamPage() {
       case "level":
         return (
           <Chip className="capitalize" size="sm" variant="flat">
-           Lv{user.level}
+            Lv{user.level}
           </Chip>
         );
       default:
@@ -207,13 +207,13 @@ export default function TeamPage() {
   return (
     <DefaultLayout>
       <section className="flex flex-col items-center gap-4"
-        // style={{
-        //   backgroundImage: "url('/bg.jpeg')", // 确保图片在public目录
-        //   backgroundSize: "cover",
-        //   backgroundPosition: "center",
-        //   backgroundAttachment: "fixed",
-        //   backgroundRepeat: "no-repeat"
-        // }}
+      // style={{
+      //   backgroundImage: "url('/bg.jpeg')", // 确保图片在public目录
+      //   backgroundSize: "cover",
+      //   backgroundPosition: "center",
+      //   backgroundAttachment: "fixed",
+      //   backgroundRepeat: "no-repeat"
+      // }}
       >
         <Card className="rounded-t-none rounded-b-[24px] w-full"
           style={{
@@ -235,8 +235,8 @@ export default function TeamPage() {
                 <h5 className="text-small tracking-tight text-default-400">@BSCScan Address</h5>
               </div>
             </div>
-            <Button isIconOnly aria-label="Like" color="success" className="white">
-              <NodeIcon />
+            <Button isIconOnly aria-label="节点" color={userInfo?.isNode ? "success" : "success"}>
+              <NodeIcon className={userInfo?.isNode ? "text-white" : ""} />
             </Button>
           </CardHeader>
           <CardBody className="px-3 py-0 text-small text-default-400">
@@ -280,10 +280,10 @@ export default function TeamPage() {
 
         <div className="w-full grid grid-cols-3 gap-2 px-2">
           {cardList.map((item, index) => (
-            <Card 
-              key={index} 
-              className="py-2 text-white w-full" 
-              isPressable 
+            <Card
+              key={index}
+              className="py-2 text-white w-full"
+              isPressable
               shadow="sm"
               style={{
                 background: 'linear-gradient(90deg, #6226CD, #D41E7F)',
@@ -301,11 +301,11 @@ export default function TeamPage() {
         </div>
 
         <div className="dark w-full">
-          <Tabs 
-            aria-label="团队区域" 
-            color="secondary" 
-            fullWidth 
-            radius="full" 
+          <Tabs
+            aria-label="团队区域"
+            color="secondary"
+            fullWidth
+            radius="full"
             className="p-2"
             selectedKey={activeArea.toString()}
             onSelectionChange={(key) => handleAreaChange(Number(key))}
@@ -314,7 +314,7 @@ export default function TeamPage() {
             <Tab key="1" title="B区" />
             <Tab key="2" title="C区" />
           </Tabs>
-          
+
           <Table
             isHeaderSticky
             aria-label="团队成员列表"
@@ -337,7 +337,7 @@ export default function TeamPage() {
               <TableColumn key="teamCount">团队</TableColumn>
               <TableColumn key="level">等级Lv</TableColumn>
             </TableHeader>
-            
+
             <TableBody
               isLoading={isLoading}
               loadingContent={<Spinner color="primary" className="my-8" />}
@@ -352,7 +352,7 @@ export default function TeamPage() {
               )}
             </TableBody>
           </Table>
-          
+
           {!isLoading && teamMembers.length === 0 && (
             <div className="flex justify-center py-8 text-white bg-black">
               当前区域暂无团队成员

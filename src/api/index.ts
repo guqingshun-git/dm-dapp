@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import axios, {
   AxiosInstance,
   InternalAxiosRequestConfig, // 关键修改
@@ -5,6 +6,8 @@ import axios, {
   AxiosHeaders // 新增导入
 } from 'axios';
 import { API_BASE } from '../config/env';
+import { addToast } from '@heroui/toast';
+
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE,
@@ -35,15 +38,33 @@ apiClient.interceptors.response.use(
     if (response.headers['x-refresh-token']) {
       localStorage.setItem('refreshToken', response.headers['x-refresh-token']);
     }
+    // console.log(response);
     return response.data;
+    
   },
-  (error: { response: { status: number } }) => {
+  (error: {
+    code: any;
+    response: {
+      data: any;
+      code: ReactNode;
+      message: ReactNode; status: number
+    }
+  }) => {
+    if(error.response?.status !== 200){
+      console.log(error);
+      addToast({
+        title: error.response?.status,
+        description: error.response?.data?.message || error.code,
+        color: 'warning',
+        timeout: 2000
+      });
+    }
     if (error.response?.status === 401) {
       console.log('过期token');
       localStorage.removeItem('jwt'); // 清除过期token
       // 直接刷新页面（触发AuthProvider）
       alert('认证中，请稍候...');
-        setTimeout(() => window.location.reload(), 1500); // 延迟刷新确保提示可见
+      setTimeout(() => window.location.reload(), 1500); // 延迟刷新确保提示可见
     }
     return Promise.reject(error);
   }

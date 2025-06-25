@@ -2,6 +2,7 @@ import { title } from "@/components/primitives";
 import DefaultLayout from "@/layouts/default";
 import { useAuth } from "@/providers/AuthProvider";
 import { useTokenBalance } from "@/contracts/calls/tokens";
+import Decimal from 'decimal.js';
 
 // import { Card, CardBody, CardHeader } from "@heroui/card";
 // import { Image } from "@heroui/image";
@@ -18,7 +19,8 @@ import { useTokenBalance } from "@/contracts/calls/tokens";
 
   export default function WalletPage() {
     const { session } = useAuth();
-    const dmBalance = useTokenBalance(session?.address as `0x${string}`)?.toString();
+    const dmRaw = useTokenBalance(session?.address as `0x${string}`);
+    const dmBalance = new Decimal((dmRaw ?? 0).toString()).div(1e18).toFixed(2);
     return (
       <DefaultLayout>
         <section className="flex flex-col items-center min-h-screen bg-[#000040]">

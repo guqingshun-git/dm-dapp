@@ -3,7 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { useAuth } from '@/providers/AuthProvider';
-// import { withdrawDm } from '@/api/api';
+import { withdrawDmRequest, withdrawDmOnchain } from '@/api/api';
+import Decimal from 'decimal.js'; // 统一使用Decimal.js进行精度计算
+import { useWriteContract } from 'wagmi';
+import { DM_CONTRACT } from '@/contracts/dmContract';
+import { type Address } from 'viem';
 
 interface DmWithdrawModalProps {
   isOpen: boolean;
@@ -17,13 +21,13 @@ const DmWithdrawModal: React.FC<DmWithdrawModalProps> = ({
   onSuccess
 }) => {
   const { session, userInfo } = useAuth();
+  const { writeContractAsync } = useWriteContract();
   const [amount, setAmount] = useState('');
-  const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [animationClass, setAnimationClass] = useState('');
 
-  const dmBalance = userInfo?.dmAccount?.balance || 0;
+  const dmBalance = new Decimal(userInfo?.dmAccount?.balance || 0);
 
   useEffect(() => {
     if (isOpen) {
@@ -41,41 +45,46 @@ const DmWithdrawModal: React.FC<DmWithdrawModalProps> = ({
       setError('用户未登录');
       return;
     }
-
-    const amountNum = parseFloat(amount);
-    
-    if (isNaN(amountNum) || amountNum <= 0) {
+    // 直接将用户输入金额转为带精度的Decimal
+    const amountDecimal = new Decimal(amount).times(1e18);
+    if (amountDecimal.isNaN() || amountDecimal.lte(0)) {
       setError('请输入有效的提现金额');
       return;
     }
-    
-    // if (amountNum > dmBalance) {
-    //   setError(`提现金额不能超过可用余额 (${dmBalance} DM)`);
-    //   return;
-    // }
-    
-    if (!address.trim()) {
-      setError('请输入钱包地址');
+    if (amountDecimal.gt(dmBalance)) {
+      setError(`提现金额不能超过可用余额 (${dmBalance.div(1e18).toFixed(2)} DM)`);
       return;
     }
-
     setIsSubmitting(true);
     setError(null);
-    
     try {
-      // 创建BigInt金额（假设DM代币有18位小数）
-      // const bigIntAmount = BigInt(amountNum * 10**18);
-      
-      // // 调用API执行提现
-      // await withdrawDm(session.address, {
-      //   amount: bigIntAmount.toString(),
-      //   withdrawAddress: address
-      // });
-      
+      console.log('开始DM提现流程...');
+      // 第一步：请求签名和记录ID
+      const { withdrawId, signature, deadline, fee } = await withdrawDmRequest(
+        session.address,
+        BigInt(amountDecimal.toFixed(0))
+      );
+      if (!withdrawId || !signature || !deadline || !fee) {
+        throw new Error('请求提现信息失败，请稍后重试');
+      }
+      console.log('withdrawId:', withdrawId, 'signature:', signature, 'deadline:', deadline, 'fee:', fee);
+      // 第二步：链上合约提现
+      const txHash = await writeContractAsync({
+        address: DM_CONTRACT.address as Address,
+        abi: DM_CONTRACT.abi,
+        functionName: 'withdrawDM',
+        args: [BigInt(amountDecimal.toFixed(0)), BigInt(fee), BigInt(deadline), signature],
+        account: session.address as Address
+      });
+      console.log('Transaction hash:', txHash);
+      if (!txHash) {
+        throw new Error('链上提现操作失败，请稍后重试');
+      }
+      // 第三步：回调后端，带上记录ID和哈希
+      await withdrawDmOnchain(session.address, withdrawId, txHash);
       onSuccess('DM提现申请已提交！');
       onClose();
       setAmount('');
-      setAddress('');
     } catch (err: any) {
       setError(err.response?.data?.message || '提现失败，请稍后重试');
     } finally {
@@ -98,7 +107,7 @@ const DmWithdrawModal: React.FC<DmWithdrawModalProps> = ({
         </div>
         
         <div className="text-gray-300 mb-4">
-          <p>可用余额: <span className="text-white font-bold">{dmBalance} DM</span></p>
+          <p>可用余额: <span className="text-white font-bold">{dmBalance.div(1e18).toFixed(2)} DM</span></p>
         </div>
         
         <Input
@@ -110,16 +119,6 @@ const DmWithdrawModal: React.FC<DmWithdrawModalProps> = ({
           variant="bordered"
           className="mb-4 bg-gray-800 border-gray-700 text-white"
         />
-{/*         
-        <Input
-          label="钱包地址"
-          placeholder="请输入接收DM代币的钱包地址"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          variant="bordered"
-          className="mb-4 bg-gray-800 border-gray-700 text-white"
-        /> */}
-        
         <div className="text-xs text-gray-400 mb-4">
           <p>提示：</p>
           <ul className="list-disc pl-5 mt-1 space-y-1">

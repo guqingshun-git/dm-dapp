@@ -3,7 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { useAuth } from '@/providers/AuthProvider';
-// import { withdrawUsdt } from '@/api/api';
+import { withdrawUsdtRequest, withdrawUsdtOnchain } from '@/api/api';
+import Decimal from 'decimal.js'; // 统一使用Decimal.js进行精度计算
+import { useWriteContract } from 'wagmi';
+import { DM_CONTRACT } from '@/contracts/dmContract';
+import { Address } from 'viem';
 
 interface UsdtWithdrawModalProps {
   isOpen: boolean;
@@ -17,13 +21,13 @@ const UsdtWithdrawModal: React.FC<UsdtWithdrawModalProps> = ({
   onSuccess
 }) => {
   const { session, userInfo } = useAuth();
+  const { writeContractAsync } = useWriteContract();
   const [amount, setAmount] = useState('');
-  const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [animationClass, setAnimationClass] = useState('');
 
-  const usdtBalance = userInfo?.usdtAccount?.balance || 0;
+  const usdtBalance = new Decimal(userInfo?.usdtAccount?.balance || 0);
 
   useEffect(() => {
     if (isOpen) {
@@ -42,42 +46,44 @@ const UsdtWithdrawModal: React.FC<UsdtWithdrawModalProps> = ({
       return;
     }
 
-    const amountNum = parseFloat(amount);
-    
-    if (isNaN(amountNum) || amountNum <= 0) {
+    // 直接将用户输入金额转为带精度的Decimal
+    const amountDecimal = new Decimal(amount).times(1e18);
+    if (amountDecimal.isNaN() || amountDecimal.lte(0)) {
       setError('请输入有效的提现金额');
       return;
     }
-    
-    // if (amountNum > usdtBalance) {
-    //   setError(`提现金额不能超过可用余额 (${usdtBalance} USDT)`);
-    //   return;
-    // }
-    
-    if (!address.trim()) {
-      setError('请输入钱包地址');
+    if (amountDecimal.gt(usdtBalance)) {
+      setError(`提现金额不能超过可用余额 (${usdtBalance.div(1e18).toFixed(2)} USDT)`);
       return;
     }
-
     setIsSubmitting(true);
     setError(null);
-    
     try {
-      // 创建BigInt金额（假设USDT有6位小数）
-      // const bigIntAmount = BigInt(amountNum * 10**6);
-      
-      // 调用API执行提现
-      // await withdrawUsdt(session.address, {
-      //   amount: bigIntAmount.toString(),
-      //   withdrawAddress: address
-      // });
-      
+      // 第一步：请求签名和记录ID
+      const { withdrawId, signature, deadline, fee } = await withdrawUsdtRequest(
+        session.address,
+        BigInt(amountDecimal.toFixed(0))
+      );
+      if (!withdrawId || !signature || !deadline || !fee) {
+        throw new Error('请求提现信息失败，请稍后重试');
+      }
+      // 第二步：链上合约操作
+      const txHash = await writeContractAsync({
+        address: DM_CONTRACT.address,
+        abi: DM_CONTRACT.abi,
+        functionName: 'withdrawUSDT',
+        args: [BigInt(amountDecimal.toFixed(0)), BigInt(fee), BigInt(deadline), signature],
+        account: session.address as Address
+      });
+      if (!txHash) {
+        throw new Error('链上提现操作失败，请稍后重试');
+      }
+      await withdrawUsdtOnchain(session.address, withdrawId, txHash);
       onSuccess('USDT提现申请已提交！');
       onClose();
       setAmount('');
-      setAddress('');
     } catch (err: any) {
-      setError(err.response?.data?.message || '提现失败，请稍后重试');
+      setError(err.response?.data?.message || err.message || '提现失败，请稍后重试');
     } finally {
       setIsSubmitting(false);
     }
@@ -98,7 +104,7 @@ const UsdtWithdrawModal: React.FC<UsdtWithdrawModalProps> = ({
         </div>
         
         <div className="text-gray-300 mb-4">
-          <p>可用余额: <span className="text-white font-bold">{usdtBalance} USDT</span></p>
+          <p>可用余额: <span className="text-white font-bold">{usdtBalance.div(1e18).toFixed(2)} USDT</span></p>
         </div>
         
         <Input
@@ -110,16 +116,7 @@ const UsdtWithdrawModal: React.FC<UsdtWithdrawModalProps> = ({
           variant="bordered"
           className="mb-4 bg-gray-800 border-gray-700 text-white"
         />
-        
-        {/* <Input
-          label="钱包地址"
-          placeholder="请输入接收USDT的钱包地址"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          variant="bordered"
-          className="mb-4 bg-gray-800 border-gray-700 text-white"
-        /> */}
-        
+      
         <div className="text-xs text-gray-400 mb-4">
           <p>提示：</p>
           <ul className="list-disc pl-5 mt-1 space-y-1">
