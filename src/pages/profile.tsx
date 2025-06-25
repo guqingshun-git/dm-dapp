@@ -125,13 +125,7 @@ export default function ProfilePage() {
   // 添加 useEffect 执行数据获取
   useEffect(() => {
     console.log("路由变化检测自动登录检测", location.pathname);
-    const fetchData = async () => {
-      try {
-      } catch (err) {
-        console.error('查询失败:', err);
-      }
-    };
-    fetchData();
+    refetch(); // 每次路由变化时重新获取用户信息
   }, [location]);
 
   // 点击
