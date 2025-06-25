@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from '@/providers/AuthProvider';
 import { useUserInfo } from '@/hooks/useUserInfo';
 
@@ -59,6 +59,7 @@ const ItemCounter = ({ number }: ItemCounterProps) => (
 export default function ProfilePage() {
   const { session, userInfo, setUserInfo, signOut } = useAuth();
   const { data: detaildInfo, refetch } = useUserInfo(session?.address);
+  const navigate = useNavigate();
 
   // 弹窗显示状态
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -85,8 +86,8 @@ export default function ProfilePage() {
   const [stats, setStats] = useState([
     { title: "DM币", key: "DmWithdraw", value: "0", color: "primary" },
     { title: "USDT", key: "UsdtWithdraw", value: "0", color: "success" },
-    { title: "DM复利", key: "compWithdraw", value: "0", color: "warning" },
-    { title: "总收益", key: "$", value: "0", color: "secondary" },
+    { title: "注册红包", key: "hongbao", value: "0", color: "warning" },
+    { title: "待释放收益", key: "$", value: "0", color: "secondary" },
   ]);
   const location = useLocation();
   // 同步最新数据到Context
@@ -107,15 +108,15 @@ export default function ProfilePage() {
           color: "success"
         },
         {
-          title: "DM复利",
-          key: "compWithdraw",
-          value: new Decimal(detaildInfo.compAccount?.balance || 0).div(1e18).toFixed(2),
+          title: "注册红包",
+          key: "hongbao",
+          value: new Decimal(detaildInfo.redAccount?.balance || 0).div(1e18).toFixed(2),
           color: "warning"
         },
         {
-          title: "总收益",
+          title: "待释放收益",
           key: "$",
-          value: new Decimal(detaildInfo.reward?.total || 0).div(1e18).toFixed(2),
+          value: new Decimal(detaildInfo.rewardAccount?.pending || 0).div(1e18).toFixed(2),
           color: "secondary"
         }
       ]);
@@ -138,14 +139,10 @@ export default function ProfilePage() {
     if (key === "usdtWithdraw") {
       setShowUsdtWithdrawModal(true);
     }
-    if (key === "compWithdraw") {
-      addToast({
-        title: '先进行划转操作',
-        description: '再从DM账户提现',
-        color: 'success',
-        timeout: 5000
-      });
-      setShowAccountTransferModal(true);
+    if (key === "hongbao") {
+      // 切换到首页（使用路由跳转，不刷新页面）
+      navigate("/");
+      return;
     }
     if (key === "transferDm") {
       setShowDmTransferModal(true);
@@ -269,11 +266,13 @@ export default function ProfilePage() {
           </CardBody>
           <CardFooter className="gap-3">
             <div className="flex gap-1">
-              <p className="font-semibold text-default-400 text-small">{userInfo?.dmAccount?.balance ?? 0}</p>
-              <p className=" text-default-400 text-small">DM Token</p>
+              <p className="font-semibold text-default-400 text-small">{new Decimal(userInfo?.dmAccount?.balance || 0).div(1e18).toFixed(2)}</p>
+              <p className="text-default-400 text-small">DM Token</p>
             </div>
             <div className="flex gap-1">
-              <p className="font-semibold text-default-400 text-small">${userInfo?.performance?.payment ?? 0}</p>
+              <p className="font-semibold text-default-400 text-small">
+                ${new Decimal(userInfo?.performance?.payment || 0).div(1e18).toFixed(2)} {/* 使用可选链访问 */}
+              </p>
               <p className="text-default-400 text-small">Performance</p>
             </div>
           </CardFooter>
@@ -294,8 +293,11 @@ export default function ProfilePage() {
               <CardBody className="p-4">
                 <div className="flex justify-between items-center">
                   <p className="text-slate-300 text-sm w-full">{stat.title}</p>
-                  {stat.key !== "$" && ( // 条件渲染：仅当 stat.key 非空时显示按钮
+                  {stat.key !== "$" && stat.key !== "hongbao" && ( // 条件渲染：仅当 stat.key 非空时显示按钮
                     <Button color="secondary" variant="shadow" size="sm" onClick={() => itemAction(stat.key)} >提现</Button>
+                  )}
+                  {stat.key === "hongbao" && ( // 条件渲染：仅当 stat.key 非空时显示按钮
+                    <Button color="secondary" variant="shadow" size="sm" onClick={() => itemAction(stat.key)} >下单</Button>
                   )}
                   {stat.key === "$" && ( // 条件渲染：仅当 stat.key 非空时显示按钮
                     <Button color="warning" variant="shadow" size="sm" isIconOnly onClick={() => itemAction(stat.key)} >$</Button>
@@ -338,7 +340,7 @@ export default function ProfilePage() {
                 </IconWrapper>
               }
             >
-              DMToken 转账
+              DM转账
             </ListboxItem>
             <ListboxItem
               key="accountTransfer"
@@ -348,7 +350,7 @@ export default function ProfilePage() {
                 </IconWrapper>
               }
             >
-              账户划转
+              DM划转
             </ListboxItem>
             {/* 我的订单 */}
             {/* <ListboxItem

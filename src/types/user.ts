@@ -33,7 +33,13 @@ export interface UserInfo {
     used?: string;
     total?: string;
   };
-  
+  redAccount?: {
+    balance?: string;
+    pending?: string;
+    success?: string;
+    used?: string;
+    total?: string;
+  };
   compAccount?: {
     balance?: string;
     pending?: string;
@@ -45,15 +51,20 @@ export interface UserInfo {
   };
   
   // 收益系统
-  reward?: {
+  rewardAccount?: {
     total?: string;      // 改为字符串类型
-    released?: string;   // 新增已释放收益
+    success?: string;   // 新增已释放收益
     pending?: string;    // 新增待释放收益
   };
-  
+  promotedAccount?: {
+    total?: string;      // 改为字符串类型
+    success?: string;   // 新增已释放收益
+    pending?: string;    // 新增待释放收益
+  };
   // 业务统计
   performance?: {
     payment?: string;    // 改为字符串类型
+    maxAmount?: string;    // 改为字符串类型
   };
   
   // 身份信息

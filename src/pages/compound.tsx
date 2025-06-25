@@ -200,7 +200,7 @@ export default function CompoundPage() {
 
             <CardBody className="p-4 pt-0">
               <div className="mb-2">
-                <span className="text-2xl font-bold text-purple-50">${userInfo?.reward?.total?.toString() ?? 0}</span>
+                <span className="text-2xl font-bold text-purple-50">${new Decimal(userInfo?.rewardAccount?.total || 0).div(1e18).toFixed(2)}</span>
                 <span className="ml-2 text-xs text-green-400 bg-green-800/30 px-2 py-1 rounded-full">
                   +12%
                 </span>

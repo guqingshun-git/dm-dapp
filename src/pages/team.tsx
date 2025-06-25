@@ -26,6 +26,7 @@ import {
   TableRow,
   TableCell,
 } from "@heroui/table";
+import Decimal from "decimal.js";
 
 
 // 团队成员接口
@@ -59,7 +60,7 @@ interface TeamInfo {
 // };
 export default function TeamPage() {
   const { address } = useAccount();
-  const [balance] = useState<string | null>(null);
+  // const [balance] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>({});
   const location = useLocation();
 
@@ -266,12 +267,12 @@ export default function TeamPage() {
           </CardBody>
           <CardFooter className="gap-3">
             <div className="flex gap-1">
-              <p className="font-semibold text-default-400 text-small">{balance || "0"}</p>
+              <p className="font-semibold text-default-400 text-small">{new Decimal(userInfo?.dmAccount?.balance || 0).div(1e18).toFixed(2)}</p>
               <p className="text-default-400 text-small">DM Token</p>
             </div>
             <div className="flex gap-1">
               <p className="font-semibold text-default-400 text-small">
-                {userInfo?.performance?.payment || "0"} {/* 使用可选链访问 */}
+                ${new Decimal(userInfo?.performance?.payment || 0).div(1e18).toFixed(2)} {/* 使用可选链访问 */}
               </p>
               <p className="text-default-400 text-small">Performance</p>
             </div>
