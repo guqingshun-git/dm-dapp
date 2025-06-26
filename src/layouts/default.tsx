@@ -1,12 +1,23 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/navbar";
-import { 
-  HomeIcon, 
-  UserGroupIcon, // 团队图标（替换MusicalNoteIcon）
-  WalletIcon,    // 钱包图标（替换Squares2X2Icon）
-  UserCircleIcon,
-  ChartBarIcon
-} from "@heroicons/react/24/solid";
+// import { 
+//   HomeIcon, 
+//   UserGroupIcon, // 团队图标（替换MusicalNoteIcon）
+//   WalletIcon,    // 钱包图标（替换Squares2X2Icon）
+//   UserCircleIcon,
+//   ChartBarIcon
+// } from "@heroicons/react/24/solid";
+import {
+  House,
+  CircleUserRound,
+  Crown,
+  ChartPie,
+  Orbit
+} from "lucide-react";
+
+
+
+
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function DefaultLayout({ children }: { children: React.ReactNode }) {
@@ -23,41 +34,41 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
     { 
       path: "/", 
       label: "首页", 
-      icon: <HomeIcon className="w-6 h-6" />,
+      icon: <House className="w-8 h-8 font-bold" />,
       activeIcon: (
-        <HomeIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+        <House className="w-8 h-8 text-purple-600 dark:text-purple-400 font-bold" />
       )
     },
     { 
       path: "/compound", 
       label: "复利", 
-      icon: <ChartBarIcon className="w-6 h-6" />,
+      icon: <Orbit className="w-8 h-8" />,
       activeIcon: (
-        <ChartBarIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+        <Orbit className="w-8 h-8 text-purple-600 dark:text-purple-400" />
       )
     },
     { 
       path: "/team", 
       label: "团队", 
-      icon: <UserGroupIcon className="w-6 h-6" />, // 修正为团队图标
+      icon: <Crown className="w-8 h-8" />, // 修正为团队图标
       activeIcon: (
-        <UserGroupIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+        <Crown className="w-8 h-8 text-purple-600 dark:text-purple-400" />
       )
     },
     { 
       path: "/wallet", 
-      label: "钱包",  // 建议统一为中文
-      icon: <WalletIcon className="w-6 h-6" />, // 修正为钱包图标
+      label: "平仓",  // 建议统一为中文
+      icon: <ChartPie className="w-8 h-8" />, // 修正为钱包图标
       activeIcon: (
-        <WalletIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+        <ChartPie className="w-8 h-8 text-purple-600 dark:text-purple-400" />
       )
     },
     { 
       path: "/profile", 
       label: "我的", 
-      icon: <UserCircleIcon className="w-6 h-6" />,
+      icon: <CircleUserRound className="w-8 h-8" />,
       activeIcon: (
-        <UserCircleIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+        <CircleUserRound className="w-8 h-8 text-purple-600 dark:text-purple-400" />
       )
     }
   ];

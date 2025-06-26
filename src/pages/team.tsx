@@ -16,7 +16,7 @@ import { User } from "@heroui/user";
 import { Alert } from "@heroui/alert";
 import {
   Wallet as WalletIcon,
-  GitFork as NodeIcon,
+  MapPinned as NodeIcon,
 } from "lucide-react";
 import {
   Table,
@@ -172,12 +172,45 @@ export default function TeamPage() {
     { title: "大区", value: teamInfo?.areaCount || 0 }
   ];
   // 渲染团队成员单元格
-  const renderTeamCell = useCallback((user: TeamMember, columnKey: keyof TeamMember) => {
+  const renderTeamCell = useCallback((user: TeamMember & { performance?: { maxAmount?: string } }, columnKey: keyof TeamMember) => {
     switch (columnKey) {
       case "username":
         return (
           <User
-            avatarProps={{ radius: "lg", src: user.avatar || "/logo.png" }}
+            avatarProps={{
+              radius: "lg",
+              src: (() => {
+                // 8个档位图片
+                const avatarImages = [
+                  "/avatar1.svg", // 0-200
+                  "/avatar2.svg", // 200-500
+                  "/avatar3.svg", // 500-1000
+                  "/avatar4.svg", // 1000-2000
+                  "/avatar5.svg", // 2000-5000
+                  "/avatar6.svg", // 5000-10000
+                  "/avatar7.svg", // 10000-20000
+                  "/avatar8.svg", // 20000-50000+
+                ];
+                // 8个档位金额（18位精度）
+                const amountSteps = [
+                  200, 500, 1000, 2000, 5000, 10000, 20000, 50000
+                ].map(v => BigInt(v) * 10n ** 18n);
+                const maxAmount = user?.performance?.maxAmount
+                  ? BigInt(user.performance.maxAmount)
+                  : null;
+                console.log("maxAmount:", maxAmount, "amountSteps:", amountSteps);
+                if (!maxAmount) return "/logo.png";
+                if (maxAmount == amountSteps[0]) return avatarImages[0];
+                if (maxAmount == amountSteps[1]) return avatarImages[1];
+                if (maxAmount == amountSteps[2]) return avatarImages[2];
+                if (maxAmount == amountSteps[3]) return avatarImages[3];
+                if (maxAmount == amountSteps[4]) return avatarImages[4];
+                if (maxAmount == amountSteps[5]) return avatarImages[5];
+                if (maxAmount == amountSteps[6]) return avatarImages[6];
+                if (maxAmount == amountSteps[7]) return avatarImages[7];
+                return avatarImages[7];
+              })()
+            }}
             name={user.username || "未知用户"}
           >
             {user.walletAddress ?
@@ -236,7 +269,7 @@ export default function TeamPage() {
                 <h5 className="text-small tracking-tight text-default-400">@BSCScan Address</h5>
               </div>
             </div>
-            <Button isIconOnly aria-label="节点" color={userInfo?.isNode ? "success" : "success"}>
+            <Button isIconOnly aria-label="节点" color={userInfo?.isNode ? "success" : "default"} isDisabled={!userInfo?.isNode}>
               <NodeIcon className={userInfo?.isNode ? "text-white" : ""} />
             </Button>
           </CardHeader>

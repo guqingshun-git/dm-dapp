@@ -97,6 +97,14 @@ export const accountTransfer = (
 ): Promise<UserInfo> =>
   apiClient.put(`user/accountTransfer/${address}`, { fromAccount, toAccount, amount: amount.toString() }); // 注意：amount需要转换成字符串，因为BigInt不能直接序列化
 
+  // DM代币充值
+export const depositDm = (
+  address: string,
+  txHash: string,
+  amount: BigInt
+): Promise<Response> =>
+  apiClient.put(`user/depositDm/${address}`, { txHash, amount: amount.toString() }); // 注意：amount需要转换成字符串，因为BigInt不能直接序列化
+
 // 节点认证
 export const nodeValidator = (
   address: string,

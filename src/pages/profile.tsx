@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useAuth } from '@/providers/AuthProvider';
 import { useUserInfo } from '@/hooks/useUserInfo';
 
@@ -18,6 +18,7 @@ import DmTransferModal from '@/components/modals/DmTransferModal';
 import AccountTransferModal from "@/components/modals/AccountTransferModal";
 import NodeValidatorModal from "@/components/modals/NodeValidatorModal";
 import LiquidationModal from "@/components/modals/LiquidationModal";
+import DmDepositModal from "@/components/modals/DmDepositModal";
 
 import { Decimal } from 'decimal.js';
 
@@ -30,7 +31,7 @@ import {
   // Shield as ShieldIcon,
   LogOut as LogOutIcon,
   Wallet as WalletIcon,
-  GitFork as NodeIcon,
+  MapPinned as NodeIcon,
   Share as InviteIcon,
   Send as TransferIcon,
   ArrowRightLeft as SwapIcon
@@ -59,7 +60,7 @@ const ItemCounter = ({ number }: ItemCounterProps) => (
 export default function ProfilePage() {
   const { session, userInfo, setUserInfo, signOut } = useAuth();
   const { data: detaildInfo, refetch } = useUserInfo(session?.address);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   // 弹窗显示状态
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -69,6 +70,7 @@ export default function ProfilePage() {
   const [showAccountTransferModal, setShowAccountTransferModal] = useState(false);
   const [showNodeValidatorModal, setShowNodeValidatorModal] = useState(false);
   const [showLiquidationModal, setShowLiquidationModal] = useState(false);
+  const [showDmDepositModal, setShowDmDepositModal] = useState(false);
 
   // 全局提示状态
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -86,7 +88,7 @@ export default function ProfilePage() {
   const [stats, setStats] = useState([
     { title: "DM币", key: "DmWithdraw", value: "0", color: "primary" },
     { title: "USDT", key: "UsdtWithdraw", value: "0", color: "success" },
-    { title: "注册红包", key: "hongbao", value: "0", color: "warning" },
+    { title: "DM币", key: "Recharge", value: "充值享复利", color: "warning" },
     { title: "待释放收益", key: "$", value: "0", color: "secondary" },
   ]);
   const location = useLocation();
@@ -108,9 +110,9 @@ export default function ProfilePage() {
           color: "success"
         },
         {
-          title: "注册红包",
-          key: "hongbao",
-          value: new Decimal(detaildInfo.redAccount?.balance || 0).div(1e18).toFixed(2),
+          title: "DM币",
+          key: "Recharge",
+          value: "充值享复利",
           color: "warning"
         },
         {
@@ -139,10 +141,8 @@ export default function ProfilePage() {
     if (key === "usdtWithdraw") {
       setShowUsdtWithdrawModal(true);
     }
-    if (key === "hongbao") {
-      // 切换到首页（使用路由跳转，不刷新页面）
-      navigate("/");
-      return;
+    if (key === "Recharge") {
+      setShowDmDepositModal(true);
     }
     if (key === "transferDm") {
       setShowDmTransferModal(true);
@@ -217,7 +217,7 @@ export default function ProfilePage() {
                 <h5 className="text-small tracking-tight text-default-400">@BSCScan Address</h5>
               </div>
             </div>
-            <Button isIconOnly aria-label="节点" color={userInfo?.isNode ? "success" : "success"}>
+            <Button isIconOnly aria-label="节点" color={userInfo?.isNode ? "success" : "default"} isDisabled={!userInfo?.isNode}>
               <NodeIcon className={userInfo?.isNode ? "text-white" : ""} />
             </Button>
           </CardHeader>
@@ -293,11 +293,11 @@ export default function ProfilePage() {
               <CardBody className="p-4">
                 <div className="flex justify-between items-center">
                   <p className="text-slate-300 text-sm w-full">{stat.title}</p>
-                  {stat.key !== "$" && stat.key !== "hongbao" && ( // 条件渲染：仅当 stat.key 非空时显示按钮
+                  {stat.key !== "$" && stat.key !== "Recharge" && ( // 条件渲染：仅当 stat.key 非空时显示按钮
                     <Button color="secondary" variant="shadow" size="sm" onClick={() => itemAction(stat.key)} >提现</Button>
                   )}
-                  {stat.key === "hongbao" && ( // 条件渲染：仅当 stat.key 非空时显示按钮
-                    <Button color="secondary" variant="shadow" size="sm" onClick={() => itemAction(stat.key)} >下单</Button>
+                  {stat.key === "Recharge" && ( // 条件渲染：仅当 stat.key 非空时显示按钮
+                    <Button color="secondary" variant="shadow" size="sm" onClick={() => itemAction(stat.key)} >充值</Button>
                   )}
                   {stat.key === "$" && ( // 条件渲染：仅当 stat.key 非空时显示按钮
                     <Button color="warning" variant="shadow" size="sm" isIconOnly onClick={() => itemAction(stat.key)} >$</Button>
@@ -501,6 +501,11 @@ export default function ProfilePage() {
           onSuccess={handleSuccess}
         />
 
+        <DmDepositModal
+          isOpen={showDmDepositModal}
+          onClose={() => setShowDmDepositModal(false)}
+          onSuccess={handleSuccess}
+        />
       </section>
     </DefaultLayout>
   );
