@@ -10,6 +10,7 @@ import { Listbox, ListboxItem } from "@heroui/listbox";
 import { addToast } from "@heroui/toast";
 import { Button } from "@heroui/button";
 import { Slider } from "@heroui/slider";
+import { Image } from "@heroui/image";
 
 import InviteModal from '@/components/modals/InviteModal';
 import UsdtWithdrawModal from '@/components/modals/UsdtWithdrawModal';
@@ -26,7 +27,7 @@ import {
   // ShoppingBag as ShoppingBagIcon,
   Headphones as HeadphonesIcon,
   // Key as KeyIcon,
-  ShoppingCart as OrderIcon,
+  // ShoppingCart as OrderIcon,
   Ticket as TicketIcon,
   // Shield as ShieldIcon,
   LogOut as LogOutIcon,
@@ -34,9 +35,9 @@ import {
   MapPinned as NodeIcon,
   Share as InviteIcon,
   Send as TransferIcon,
-  ArrowRightLeft as SwapIcon
+  ArrowRightLeft as SwapIcon,
+  TruckIcon
 } from "lucide-react";
-
 interface IconWrapperProps {
   children: React.ReactNode;
   className?: string;
@@ -88,7 +89,7 @@ export default function ProfilePage() {
   const [stats, setStats] = useState([
     { title: "DM币", key: "DmWithdraw", value: "0", color: "primary" },
     { title: "USDT", key: "UsdtWithdraw", value: "0", color: "success" },
-    { title: "DM币", key: "Recharge", value: "充值享复利", color: "warning" },
+    { title: "DM币", key: "Recharge", value: "充值复利", color: "warning" },
     { title: "待释放收益", key: "$", value: "0", color: "secondary" },
   ]);
   const location = useLocation();
@@ -112,7 +113,7 @@ export default function ProfilePage() {
         {
           title: "DM币",
           key: "Recharge",
-          value: "充值享复利",
+          value: "充值复利",
           color: "warning"
         },
         {
@@ -217,9 +218,18 @@ export default function ProfilePage() {
                 <h5 className="text-small tracking-tight text-default-400">@BSCScan Address</h5>
               </div>
             </div>
-            <Button isIconOnly aria-label="节点" color={userInfo?.isNode ? "success" : "default"} isDisabled={!userInfo?.isNode}>
+            {/* <Button isIconOnly aria-label="节点" color={userInfo?.isNode ? "success" : "default"} isDisabled={!userInfo?.isNode}>
               <NodeIcon className={userInfo?.isNode ? "text-white" : ""} />
-            </Button>
+            </Button> */}
+            {userInfo?.isNode && (
+              <Image
+                alt="Card background"
+                className="object-cover rounded-xl"
+                src="node.jpeg"
+                width={38}
+                height={38}
+              />
+            )}
           </CardHeader>
           <CardBody className="px-3 py-0 text-small text-default-400">
             <Slider
@@ -397,7 +407,7 @@ export default function ProfilePage() {
               key="transferDmrwa"
               startContent={
                 <IconWrapper className="bg-pink-500/10 text-pink-500">
-                  <OrderIcon className="text-lg" />
+                  <TruckIcon className="text-lg" />
                 </IconWrapper>
               }
               endContent={<span className="text-small text-default-400">去平仓</span>}

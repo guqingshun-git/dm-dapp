@@ -7,14 +7,13 @@ import { Navbar } from "@/components/navbar";
 //   UserCircleIcon,
 //   ChartBarIcon
 // } from "@heroicons/react/24/solid";
-import {
-  House,
-  CircleUserRound,
-  Crown,
-  ChartPie,
-  Orbit
-} from "lucide-react";
-
+import { 
+  RocketLaunchIcon,
+  CircleStackIcon,
+  UserGroupIcon,
+  DocumentCurrencyDollarIcon,
+  IdentificationIcon,
+} from '@heroicons/react/24/outline';
 
 
 
@@ -34,41 +33,41 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
     { 
       path: "/", 
       label: "首页", 
-      icon: <House className="w-8 h-8 font-bold" />,
+      icon: <RocketLaunchIcon className="w-8 h-8 font-bold" />,
       activeIcon: (
-        <House className="w-8 h-8 text-purple-600 dark:text-purple-400 font-bold" />
+        <RocketLaunchIcon className="w-8 h-8 text-purple-600 dark:text-purple-400 font-bold" />
       )
     },
     { 
       path: "/compound", 
       label: "复利", 
-      icon: <Orbit className="w-8 h-8" />,
+      icon: <CircleStackIcon className="w-8 h-8" />,
       activeIcon: (
-        <Orbit className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        <CircleStackIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
       )
     },
     { 
       path: "/team", 
       label: "团队", 
-      icon: <Crown className="w-8 h-8" />, // 修正为团队图标
+      icon: <UserGroupIcon className="w-8 h-8" />, // 修正为团队图标
       activeIcon: (
-        <Crown className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        <UserGroupIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
       )
     },
     { 
       path: "/wallet", 
       label: "平仓",  // 建议统一为中文
-      icon: <ChartPie className="w-8 h-8" />, // 修正为钱包图标
+      icon: <DocumentCurrencyDollarIcon className="w-8 h-8" />, // 修正为钱包图标
       activeIcon: (
-        <ChartPie className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        <DocumentCurrencyDollarIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
       )
     },
     { 
       path: "/profile", 
       label: "我的", 
-      icon: <CircleUserRound className="w-8 h-8" />,
+      icon: <IdentificationIcon className="w-8 h-8" />,
       activeIcon: (
-        <CircleUserRound className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        <IdentificationIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
       )
     }
   ];

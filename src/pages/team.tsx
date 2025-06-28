@@ -2,21 +2,24 @@ import { useEffect, useState, useCallback } from "react";
 import DefaultLayout from "@/layouts/default";
 import { useLocation } from "react-router-dom";
 import { useAccount } from "wagmi";
-import apiClient from "@/api";
+import apiClient from '@/api';
+import { upgradeLevel } from "@/api/api";
+import { useAuth } from "@/providers/AuthProvider";
 
 import { Spinner } from "@heroui/spinner";
 import { useInfiniteScroll } from "@heroui/use-infinite-scroll";
 import { Chip } from "@heroui/chip";
 import { Tab, Tabs } from "@heroui/tabs";
 import { Slider } from "@heroui/slider";
-import { Button } from "@heroui/button";
+// import { Button } from "@heroui/button";
+import { Image } from "@heroui/image";
 import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Avatar } from "@heroui/avatar";
 import { User } from "@heroui/user";
 import { Alert } from "@heroui/alert";
 import {
   Wallet as WalletIcon,
-  MapPinned as NodeIcon,
+  // MapPinned as NodeIcon,
 } from "lucide-react";
 import {
   Table,
@@ -60,6 +63,7 @@ interface TeamInfo {
 // };
 export default function TeamPage() {
   const { address } = useAccount();
+  const { session } = useAuth();
   // const [balance] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>({});
   const location = useLocation();
@@ -145,6 +149,14 @@ export default function TeamPage() {
     }
   }, [address, fetchTeamData]);
 
+  // 页面打开时自动执行 upgradeLevel，依赖 session.address。
+  useEffect(() => {
+    if (session?.address) {
+      // 页面打开时自动执行 upgradeLevel
+      upgradeLevel(session.address).catch(() => { });
+    }
+  }, [session?.address]);
+
   // 区域切换处理
   const handleAreaChange = (areaIndex: number) => {
     const areaIndexCount = (teamInfo?.areas as { count: number }[])?.[areaIndex]?.count || 0;
@@ -182,14 +194,14 @@ export default function TeamPage() {
               src: (() => {
                 // 8个档位图片
                 const avatarImages = [
-                  "/avatar1.svg", // 0-200
-                  "/avatar2.svg", // 200-500
-                  "/avatar3.svg", // 500-1000
-                  "/avatar4.svg", // 1000-2000
-                  "/avatar5.svg", // 2000-5000
-                  "/avatar6.svg", // 5000-10000
-                  "/avatar7.svg", // 10000-20000
-                  "/avatar8.svg", // 20000-50000+
+                  "/1.png", // 0-200
+                  "/2.png", // 200-500
+                  "/3.png", // 500-1000
+                  "/4.png", // 1000-2000
+                  "/5.png", // 2000-5000
+                  "/6.png", // 5000-10000
+                  "/7.png", // 10000-20000
+                  "/8.jpeg", // 20000-50000+
                 ];
                 // 8个档位金额（18位精度）
                 const amountSteps = [
@@ -269,9 +281,18 @@ export default function TeamPage() {
                 <h5 className="text-small tracking-tight text-default-400">@BSCScan Address</h5>
               </div>
             </div>
-            <Button isIconOnly aria-label="节点" color={userInfo?.isNode ? "success" : "default"} isDisabled={!userInfo?.isNode}>
+            {/* <Button isIconOnly aria-label="节点" color={userInfo?.isNode ? "success" : "default"} isDisabled={!userInfo?.isNode}>
               <NodeIcon className={userInfo?.isNode ? "text-white" : ""} />
-            </Button>
+            </Button> */}
+            {userInfo?.isNode && (
+              <Image
+                alt="Card background"
+                className="object-cover rounded-xl"
+                src="node.jpeg"
+                width={38}
+                height={38}
+              />
+            )}
           </CardHeader>
           <CardBody className="px-3 py-0 text-small text-default-400">
             <Slider

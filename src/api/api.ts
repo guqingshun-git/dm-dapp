@@ -20,7 +20,13 @@ export const updateUserInfo = (
 ): Promise<UserInfo> =>
   apiClient.put(`user/${address}`, { ...data, walletAddress: address }); // 修改这里，加入walletAddress
 
-// 提交邀请码
+  // 升级用户等级
+export const upgradeLevel = (
+  address: string
+): Promise<Response> =>
+  apiClient.put(`team/upgradeLevel/${address}`).then(response => response.data); // 注意：amount需要转换成字符串，因为BigInt不能直接序列化
+
+  // 提交邀请码
 export const submitInviteCode = (
   address: string,
   directInviter: string // 现在只接收邀请人地址
