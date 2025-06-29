@@ -158,7 +158,7 @@ export default function CompoundPage() {
         title: "compoundDailyRate",
         name: "复利倍数",
         img: "/images/fruit-2.jpeg",
-        value: compoundDailyRate.dividedBy(100).toNumber()
+        value: compoundDailyRate.dividedBy(10000).toNumber()
       }
     ];
 

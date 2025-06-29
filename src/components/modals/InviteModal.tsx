@@ -110,7 +110,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
         <div className="flex justify-end gap-3">
           <Button 
             variant="flat" 
-            color="default"
+            color="secondary"
             onClick={onClose}
             disabled={isSubmitting}
           >

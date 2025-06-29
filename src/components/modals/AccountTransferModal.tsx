@@ -111,18 +111,20 @@ const AccountTransferModal: React.FC<AccountTransferModalProps> = ({
     setError(null);
     
     try {
-      // 调用转账接口 (传递字符串值避免精度丢失)
+      // Decimal 先转整数字符串，再转 BigInt，避免科学计数法
+      const transferAmountStr = transferAmount.toFixed(0); // 转为普通整数字符串
       await accountTransfer(
         session.address,
         transferType === 'dmToComp' ? 'dmAccount' : 'compAccount',
         transferType === 'dmToComp' ? 'compAccount' : 'dmAccount',
-        BigInt(transferAmount.toString()) // 转为字符串传递 
+        BigInt(transferAmountStr) // 这样不会报错
       );
-      
       onSuccess('DM账户划转成功！');
       onClose();
       setAmount('');
     } catch (err: any) {
+      // console.error('划转异常:', err);
+      // 提取错误信息，优先使用后端返回的消息
       setError(err.response?.data?.message || '划转失败，请稍后重试');
     } finally {
       setIsSubmitting(false);
@@ -243,7 +245,7 @@ const AccountTransferModal: React.FC<AccountTransferModalProps> = ({
             取消
           </Button>
           <Button 
-            color="primary"
+            color="secondary"
             onClick={handleSubmit}
             isLoading={isSubmitting}
             disabled={isSubmitting || !amount}

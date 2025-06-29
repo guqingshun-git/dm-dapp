@@ -149,7 +149,7 @@ const DmTransferModal: React.FC<DmTransferModalProps> = ({
             取消
           </Button>
           <Button 
-            color="primary"
+            color="secondary"
             onClick={handleSubmit}
             isLoading={isSubmitting}
             disabled={isSubmitting}

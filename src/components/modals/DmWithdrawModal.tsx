@@ -118,6 +118,16 @@ const DmWithdrawModal: React.FC<DmWithdrawModalProps> = ({
           onChange={(e) => setAmount(e.target.value)}
           variant="bordered"
           className="mb-4 bg-gray-800 border-gray-700 text-white"
+          endContent={
+            <button
+              color="secondary"
+              className="text-purple-400 text-sm hover:text-purple-300 transition-colors"
+              onClick={() => setAmount(dmBalance.div(1e18).toFixed(2))}
+              type="button"
+            >
+              全部提现
+            </button>
+          }
         />
         <div className="text-xs text-gray-400 mb-4">
           <p>提示：</p>
@@ -142,7 +152,7 @@ const DmWithdrawModal: React.FC<DmWithdrawModalProps> = ({
             取消
           </Button>
           <Button 
-            color="primary"
+            color="secondary"
             onClick={handleSubmit}
             isLoading={isSubmitting}
             disabled={isSubmitting}
