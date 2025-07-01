@@ -1,8 +1,6 @@
-import { useEffect } from "react";
-// import apiClient from "@/api";
+import { useEffect, useState } from "react";
+import { fetchTokenPrice } from "@/api/api";
 import { useAuth } from "@/providers/AuthProvider";
-// import { useLocation } from "react-router-dom";
-// import { useUserInfo } from "@/hooks/useUserInfo";
 import { Decimal } from 'decimal.js';
 
 import { title } from "@/components/primitives";
@@ -59,13 +57,62 @@ ChartJS.register(
 );
 
 export default function CompoundPage() {
-  // 图表数据
+  const [tokenPrice, setTokenPrice] = useState<number>(4100); // 默认价格
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false);
+  
+  // 获取代币价格
+  const getTokenPrice = async () => {
+    try {
+      setIsLoadingPrice(true);
+      console.log('开始获取代币价格...');
+      const response = await fetchTokenPrice();
+      console.log('API响应数据:', response);
+      
+      // 检查响应数据结构
+      if (response && typeof response === 'object') {
+        let price: number;
+        
+        // 尝试不同的数据结构
+        if (response.tokenPrice) {
+          price = parseFloat(response.tokenPrice);
+        } else if (typeof response === 'string') {
+          price = parseFloat(response);
+        } else {
+          console.error('未知的响应格式:', response);
+          return;
+        }
+        
+        console.log('解析出的价格:', price);
+        if (!isNaN(price) && price > 0) {
+          setTokenPrice(price);
+        } else {
+          console.error('价格解析失败或价格无效:', price);
+        }
+      } else {
+        console.error('响应数据为空或格式错误:', response);
+      }
+    } catch (error) {
+      console.error('获取代币价格失败:', error);
+      // 网络错误时使用默认价格
+      setTokenPrice(0);
+    } finally {
+      setIsLoadingPrice(false);
+    }
+  };
+
+  // 图表数据 - 使用动态价格
   const data = {
     labels: ['Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
     datasets: [
       {
         label: '收益',
-        data: [4100, 3800, 4200, 3900, 4600],
+        data: [
+          tokenPrice * 0.9,  // 前4个月相对当前价格的波动
+          tokenPrice * 0.85,
+          tokenPrice * 0.95,
+          tokenPrice * 0.88,
+          tokenPrice // 当前价格
+        ],
         borderColor: 'rgba(139, 92, 246, 1)', // 紫色
         backgroundColor: (context: { chart: { ctx: any; }; }) => {
           const ctx = context.chart.ctx;
@@ -131,8 +178,8 @@ export default function CompoundPage() {
         grid: {
           display: false
         },
-        min: 3000,
-        max: 5000
+        min: tokenPrice * 0.8,  // 动态调整Y轴范围
+        max: tokenPrice * 1.1
       }
     },
     elements: {
@@ -144,6 +191,11 @@ export default function CompoundPage() {
   };
   // const location = useLocation();
   const { session, userInfo } = useAuth();
+
+  // 页面加载时获取代币价格
+  useEffect(() => {
+    getTokenPrice();
+  }, []);
 
   useEffect(() => {
     let compoundDailyRate = new Decimal(userInfo?.compAccount?.dailyRate ?? 0);
@@ -200,7 +252,9 @@ export default function CompoundPage() {
 
             <CardBody className="p-4 pt-0">
               <div className="mb-2">
-                <span className="text-2xl font-bold text-purple-50">${new Decimal(userInfo?.rewardAccount?.total || 0).div(1e18).toFixed(2)}</span>
+                <span className="text-2xl font-bold text-purple-50">
+                  ${isLoadingPrice ? '加载中...' : tokenPrice.toFixed(8)}
+                </span>
                 <span className="ml-2 text-xs text-green-400 bg-green-800/30 px-2 py-1 rounded-full">
                   +12%
                 </span>
@@ -242,7 +296,7 @@ export default function CompoundPage() {
                 <Image
                   alt="Card background"
                   className="object-cover rounded-xl"
-                  src="https://heroui.com/images/hero-card-complete.jpeg"
+                  src="/hero-card-complete.jpeg"
                   width={170}
                 />
               </CardBody>

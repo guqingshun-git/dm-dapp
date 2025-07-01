@@ -23,7 +23,8 @@ export const orders = [
     id: 1,
     status: "active",
     logo: "",
-    orderAmount: 2,    // USDT
+    orderAmount: 1.1,    // USDT
+    // orderAmount: 200,    // USDT
     rewardMultiplier: 1.4,
     dailyReleaseRate: "1%",     // 每日%线性释放
     compoundDailyRate: "1.2%",   // 日复利%
@@ -33,7 +34,8 @@ export const orders = [
     id: 2,
     status: "active",
     logo: "",
-    orderAmount: 5,    // USDT
+    orderAmount: 1.2,    // USDT
+    // orderAmount: 500,    // USDT
     rewardMultiplier: 1.6,
     dailyReleaseRate: "1.2%",     // 每日%线性释放
     compoundDailyRate: "1.4%",   // 日复利%
@@ -43,7 +45,8 @@ export const orders = [
     id: 3,
     status: "active",
     logo: "",
-    orderAmount: 1000,    // USDT
+    orderAmount: 1.3,    // USDT
+    // orderAmount: 1000,    // USDT
     rewardMultiplier: 1.8,
     dailyReleaseRate: "1.4%",     // 每日%线性释放
     compoundDailyRate: "1.6%",   // 日复利%
@@ -53,7 +56,8 @@ export const orders = [
     id: 4,
     status: "active",
     logo: "",
-    orderAmount: 2000,    // USDT
+    // orderAmount: 2000,    // USDT
+    orderAmount: 1.4,    // USDT
     rewardMultiplier: 2,
     dailyReleaseRate: "1.6%",     // 每日%线性释放
     compoundDailyRate: "1.8%",   // 日复利%
@@ -63,7 +67,8 @@ export const orders = [
     id: 5,
     status: "active",
     logo: "",
-    orderAmount: 5000,    // USDT
+    // orderAmount: 5000,    // USDT
+    orderAmount: 1.5,    // USDT
     rewardMultiplier: 2.2,
     dailyReleaseRate: "1.8%",     // 每日%线性释放
     compoundDailyRate: "2%",   // 日复利%
@@ -73,7 +78,8 @@ export const orders = [
     id: 6,
     status: "active",
     logo: "",
-    orderAmount: 10000,    // USDT
+    // orderAmount: 10000,    // USDT
+    orderAmount: 1.6,    // USDT
     rewardMultiplier: 2.4,
     dailyReleaseRate: "2%",     // 每日%线性释放
     compoundDailyRate: "2.5%",   // 日复利%
@@ -83,7 +89,8 @@ export const orders = [
     id: 7,
     status: "active",
     logo: "",
-    orderAmount: 20000,    // USDT
+    // orderAmount: 20000,    // USDT
+    orderAmount: 1.7,    // USDT
     rewardMultiplier: 2.6,
     dailyReleaseRate: "2.5%",     // 每日%线性释放
     compoundDailyRate: "3%",   // 日复利%
@@ -93,7 +100,8 @@ export const orders = [
     id: 8,
     status: "active",
     logo: "",
-    orderAmount: 50000,    // USDT
+    orderAmount: 1.8,    // USDT
+    // orderAmount: 50000,    // USDT
     rewardMultiplier: 3,
     dailyReleaseRate: "3%",     // 每日%线性释放
     compoundDailyRate: "4%",   // 日复利%
@@ -342,11 +350,11 @@ export default function IndexPage() {
         throw new Error(`Gas 设置错误: ${error.shortMessage || error.message}`);
       });
 
-      // 保存交易哈希用于轮询检查
-      setCurrentTxHash(txHash);
-
       // 立即发送创建订单请求到后端
       createBackendOrder(txHash, usdtAmount);
+      
+       // 保存交易哈希用于轮询检查
+      setCurrentTxHash(txHash);
 
       addToast({
         title: '交易已发送',
@@ -469,7 +477,8 @@ export default function IndexPage() {
         >
           <CardHeader className="pb-0 pt-2 px-4 flex-col items-start text-white pt-4">
             <p className="text-tiny uppercase font-bold">DM Token</p>
-            <small className="text-default-500">500,0000,0000​​ DM</small>
+            {/* <small className="text-default-500">注册送$100</small> */}
+            <span className={title({ color: "violet" })}>注册送$100&nbsp;</span>
             <Link
               isExternal
               showAnchorIcon
@@ -482,7 +491,7 @@ export default function IndexPage() {
             <Image
               alt="Card background"
               className="object-cover rounded-xl"
-              src="https://heroui.com/images/hero-card-complete.jpeg"
+              src="/hero-card-complete.jpeg"
               width={400}
               height={100}
             />

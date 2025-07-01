@@ -47,6 +47,7 @@ interface TeamInfo {
   directCount: number;
   teamCount: number;
   areaCount: number;
+  totalOrderAmount?: string; // 新增属性，类型可根据实际API返回调整
   areas: {
     name: string;
     count: number;
@@ -201,7 +202,7 @@ export default function TeamPage() {
                   "/5.png", // 2000-5000
                   "/6.png", // 5000-10000
                   "/7.png", // 10000-20000
-                  "/8.jpeg", // 20000-50000+
+                  "/8.png", // 20000-50000+
                 ];
                 // 8个档位金额（18位精度）
                 const amountSteps = [
@@ -297,9 +298,14 @@ export default function TeamPage() {
           <CardBody className="px-3 py-0 text-small text-default-400">
             <Slider
               className="max-w-md"
-              defaultValue={0}
+              value={(() => {
+                const level = Number(userInfo?.level ?? 0);
+                if (isNaN(level) || level < 1) return 0;
+                if (level > 5) return 1;
+                return level * 0.2;
+              })()}
               formatOptions={{ style: "percent" }}
-              label="LV0"
+              label={`LV${userInfo?.level ?? 0}`}
               marks={[
                 { value: 0, label: "" },
                 { value: 0.2, label: "LV1" },
@@ -308,8 +314,8 @@ export default function TeamPage() {
                 { value: 0.8, label: "LV4" },
                 { value: 1, label: "LV5" }
               ]}
-              maxValue={1}
               minValue={0}
+              maxValue={1}
               showTooltip={true}
               step={0.2}
             />
@@ -354,6 +360,26 @@ export default function TeamPage() {
             </Card>
           ))}
         </div>
+
+        <div className="w-full grid grid-cols-1 gap-2 px-2">
+            <Card
+              className="py-2 text-white w-full"
+              isPressable
+              shadow="sm"
+              style={{
+                background: 'linear-gradient(90deg, #6226CD, #D41E7F)',
+                fontFamily: 'system-ui, sans-serif',
+                boxShadow: "0 10px 30px rgba(128, 0, 128, 0.3)"
+              }}
+            >
+              <CardHeader className="pb-0 pt-2 px-4 flex flex-col items-start w-full">
+                <p className="text-tiny uppercase font-bold">总业绩</p>
+                <small className="text-default-500">$</small>
+                <h4 className="font-bold text-large">{new Decimal(teamInfo?.totalOrderAmount || 0).div(1e18).toFixed(2)}</h4>
+              </CardHeader>
+            </Card>
+        </div>
+          
 
         <div className="dark w-full">
           <Tabs

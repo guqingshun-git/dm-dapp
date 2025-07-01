@@ -127,5 +127,18 @@ export const transferDmrwa = (
 ): Promise<Response> =>
   apiClient.post(`user/transferDmrwa/${address}`, { txHash, amount: amount.toString() }); // 注意：amount需要转换成字符串，因为BigInt不能直接序列化
 
-  // 其他接口示例
+// 获取代币价格
+export const fetchTokenPrice = (): Promise<any> =>
+  apiClient.get('/tokenPrice').then(response => {
+    console.log('API原始响应:', response);
+    console.log('response.data:', response.data);
+    // 后端返回 { data: { tokenPrice } }，所以我们需要 response.data.data
+    if (response.data && response.data.data) {
+      return response.data.data;
+    }
+    // 如果结构不对，直接返回 response.data
+    return response.data;
+  });
+
+// 其他接口示例
 export const fetchPosts = () => apiClient.get('/posts');

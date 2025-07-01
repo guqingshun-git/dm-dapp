@@ -59,7 +59,9 @@ export interface UserInfo {
   promotedAccount?: {
     total?: string;      // 改为字符串类型
     success?: string;   // 新增已释放收益
-    pending?: string;    // 新增待释放收益
+    pending?: string;    // 待释放收益
+    todayReleased?: string; // 今日释放收益
+    releaseDM?: string; // 释放DM代币
   };
   // 业务统计
   performance?: {

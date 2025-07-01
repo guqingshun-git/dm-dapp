@@ -234,37 +234,24 @@ export default function ProfilePage() {
           <CardBody className="px-3 py-0 text-small text-default-400">
             <Slider
               className="max-w-md"
-              defaultValue={0}
+              value={(() => {
+                const level = Number(userInfo?.level ?? 0);
+                if (isNaN(level) || level < 1) return 0;
+                if (level > 5) return 1;
+                return level * 0.2;
+              })()}
               formatOptions={{ style: "percent" }}
               label={`LV${userInfo?.level ?? 0}`}
               marks={[
-                {
-                  value: 0,
-                  label: "",
-                },
-                {
-                  value: 0.2,
-                  label: "LV1",
-                },
-                {
-                  value: 0.4,
-                  label: "LV2",
-                },
-                {
-                  value: 0.6,
-                  label: "LV3",
-                },
-                {
-                  value: 0.8,
-                  label: "LV4",
-                },
-                {
-                  value: 1,
-                  label: "LV5",
-                }
+                { value: 0, label: "" },
+                { value: 0.2, label: "LV1" },
+                { value: 0.4, label: "LV2" },
+                { value: 0.6, label: "LV3" },
+                { value: 0.8, label: "LV4" },
+                { value: 1, label: "LV5" }
               ]}
-              maxValue={1}
               minValue={0}
+              maxValue={1}
               showTooltip={true}
               step={0.2}
             />

@@ -1,12 +1,13 @@
-import { title } from "@/components/primitives";
+// import { title } from "@/components/primitives";
 import DefaultLayout from "@/layouts/default";
 import { useAuth } from "@/providers/AuthProvider";
 // import { useTokenBalance } from "@/contracts/calls/tokens";
 import Decimal from 'decimal.js';
 import { useUserInfo } from "@/hooks/useUserInfo";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Image } from "@heroui/image";
+import AccountTransferModal from "@/components/modals/AccountTransferModal";
 
 let cardList = [
   {
@@ -20,6 +21,18 @@ let cardList = [
     name: "平仓待释放",
     img: "/images/fruit-2.jpeg",
     value: 0,
+  },
+  {
+    title: "DMToken",
+    name: "DM收益",
+    img: "/images/fruit-2.jpeg",
+    value: 0,
+  },
+  {
+    title: "AccountTransfer",
+    name: "DM划转",
+    img: "/images/fruit-2.jpeg",
+    value: 0,
   }
 ];
 
@@ -28,6 +41,22 @@ export default function WalletPage() {
   const { data: detaildInfo } = useUserInfo(session?.address);
   // const dmRaw = useTokenBalance(session?.address as `0x${string}`);
   // const dmBalance = new Decimal((dmRaw ?? 0).toString()).div(1e18).toFixed(2);
+
+  // 弹窗状态
+  const [showAccountTransferModal, setShowAccountTransferModal] = useState(false);
+
+  // 处理成功回调
+  const handleSuccess = (message: string) => {
+    console.log(message);
+    // 可以添加其他成功处理逻辑
+  };
+
+  // 点击卡片处理函数
+  const handleCardClick = (item: any) => {
+    if (item.title === "Transfer") {
+      setShowAccountTransferModal(true);
+    }
+  };
 
   useEffect(() => {
     cardList = [
@@ -42,6 +71,18 @@ export default function WalletPage() {
         name: "平仓待释放",
         img: "/images/fruit-2.jpeg",
         value: new Decimal(userInfo?.promotedAccount?.pending || 0).div(1e18).toFixed(2)
+      },
+      {
+        title: "releaseDM",
+        name: "DM收益",
+        img: "/images/fruit-2.jpeg",
+        value: new Decimal(userInfo?.promotedAccount?.releaseDM || 0).div(1e18).toFixed(2)
+      },
+      {
+        title: "Transfer",
+        name: "DM划转",
+        img: "/images/fruit-2.jpeg",
+        value: new Decimal(userInfo?.compAccount?.balance || 0).div(1e18).toFixed(2)
       }
     ];
 
@@ -57,14 +98,19 @@ export default function WalletPage() {
           backgroundRepeat: "no-repeat"
         }}
       >
-        <div className="px-6 pt-12 flex flex-col items-start w-full">
+        {/* <div className="px-6 pt-12 flex flex-col items-start w-full">
           <h4 className="font-bold text-large text-default-500">可用红包：</h4>
           <span className={title({ color: "violet" })}>${new Decimal(userInfo?.redAccount?.balance || 0).div(1e18).toFixed(2)}&nbsp;</span>
-        </div>
+        </div> */}
 
         <div className="gap-4 grid grid-cols-2 px-4 pt-6">
           {cardList.map((item, index) => (
-            <Card className="py-4 text-white w-full" key={index} isPressable shadow="sm"
+            <Card 
+              className="py-4 text-white w-full" 
+              key={index} 
+              isPressable 
+              shadow="sm"
+              onPress={() => handleCardClick(item)}
               style={{
                 background: 'linear-gradient(90deg, #6226CD, #D41E7F)',
                 fontFamily: 'system-ui, sans-serif',
@@ -80,7 +126,7 @@ export default function WalletPage() {
                 <Image
                   alt="Card background"
                   className="object-cover rounded-xl"
-                  src="https://heroui.com/images/hero-card-complete.jpeg"
+                  src="/hero-card-complete.jpeg"
                   width={170}
                 />
               </CardBody>
@@ -94,10 +140,12 @@ export default function WalletPage() {
             <span className={title({ color: "violet" })}>商城建设中....</span>
           </div> */}
 
-
-
-
-
+        {/* 弹窗组件 */}
+        <AccountTransferModal
+          isOpen={showAccountTransferModal}
+          onClose={() => setShowAccountTransferModal(false)}
+          onSuccess={handleSuccess}
+        />
       </section>
     </DefaultLayout>
   );
