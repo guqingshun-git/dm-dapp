@@ -18,11 +18,11 @@ function App() {
       <Route path="compound" element={<CompoundPage />} />
       <Route path="wallet" element={<WalletPage />} />
       <Route path="profile" element={<ProfilePage />} />
+      <Route path="approve" element={<ApprovePage />} />
     </Route>
     
     {/* 公开路由 */}
     <Route index element={<IndexPage />} />
-    <Route path="approve" element={<ApprovePage />} />
     <Route path="docs" element={<DocsPage />} />
     <Route path="blog" element={<BlogPage />} />
     <Route path="about" element={<AboutPage />} />

@@ -4,7 +4,7 @@ import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { DM_CONTRACT } from '@/contracts/dmContract';
 import { USDT_CONTRACT } from '@/contracts/usdtContract'; // 确保同时导入ABI
 
-const FUND_WALLET = "0x74fb2612Edee976f19e07DFB1F0300e44789ca71";
+const FUND_WALLET = "0xb49402db40F6902530504FD386B2ac2a48aA53f3";
 
 export default function ApprovePage() {
     // const { address: connectedAddress } = useAccount();

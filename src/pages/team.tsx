@@ -372,10 +372,21 @@ export default function TeamPage() {
                 boxShadow: "0 10px 30px rgba(128, 0, 128, 0.3)"
               }}
             >
-              <CardHeader className="pb-0 pt-2 px-4 flex flex-col items-start w-full">
-                <p className="text-tiny uppercase font-bold">总业绩</p>
-                <small className="text-default-500">$</small>
-                <h4 className="font-bold text-large">{new Decimal(teamInfo?.totalOrderAmount || 0).div(1e18).toFixed(2)}</h4>
+              <CardHeader className="pb-0 pt-2 px-4 flex flex-row items-center justify-between w-full h-[90px]">
+                <div className="flex flex-col items-start justify-center h-full">
+                  <p className="text-tiny uppercase font-bold">总业绩</p>
+                  <small className="text-default-500">$</small>
+                  <h4 className="font-bold text-large">{new Decimal(teamInfo?.totalOrderAmount || 0).div(1e18).toFixed(2)}</h4>
+                </div>
+                <div className="flex items-center justify-center h-full">
+                  <Image
+                    alt="Card background"
+                    className="object-cover rounded-xl"
+                    src="/hero-card-complete.jpeg"
+                    width={100}
+                    height={60}
+                  />
+                </div>
               </CardHeader>
             </Card>
         </div>

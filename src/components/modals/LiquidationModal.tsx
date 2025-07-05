@@ -54,6 +54,10 @@ const LiquidationModal: React.FC<LiquidationModalProps> = ({
         setError('输入有效金额');
         return;
       }
+      if (amountDec.gt(500)) {
+        setError('平仓数量不能超过500');
+        return;
+      }
       setIsSubmitting(true);
       // 直接链上调用，无授权
       const bigIntAmount = BigInt(amountDec.times(UNIT).toFixed(0));

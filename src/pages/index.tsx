@@ -22,9 +22,9 @@ export const orders = [
   {
     id: 1,
     status: "active",
-    logo: "",
-    orderAmount: 1.1,    // USDT
-    // orderAmount: 200,    // USDT
+    logo: "/1.png",
+    // orderAmount: 1.1,    // USDT
+    orderAmount: 200,    // USDT
     rewardMultiplier: 1.4,
     dailyReleaseRate: "1%",     // 每日%线性释放
     compoundDailyRate: "1.2%",   // 日复利%
@@ -33,9 +33,9 @@ export const orders = [
   {
     id: 2,
     status: "active",
-    logo: "",
-    orderAmount: 1.2,    // USDT
-    // orderAmount: 500,    // USDT
+    logo: "2.png",
+    // orderAmount: 1.2,    // USDT
+    orderAmount: 500,    // USDT
     rewardMultiplier: 1.6,
     dailyReleaseRate: "1.2%",     // 每日%线性释放
     compoundDailyRate: "1.4%",   // 日复利%
@@ -44,9 +44,9 @@ export const orders = [
   {
     id: 3,
     status: "active",
-    logo: "",
-    orderAmount: 1.3,    // USDT
-    // orderAmount: 1000,    // USDT
+    logo: "3.png",
+    // orderAmount: 1.3,    // USDT
+    orderAmount: 1000,    // USDT
     rewardMultiplier: 1.8,
     dailyReleaseRate: "1.4%",     // 每日%线性释放
     compoundDailyRate: "1.6%",   // 日复利%
@@ -55,9 +55,9 @@ export const orders = [
   {
     id: 4,
     status: "active",
-    logo: "",
-    // orderAmount: 2000,    // USDT
-    orderAmount: 1.4,    // USDT
+    logo: "4.png",
+    orderAmount: 2000,    // USDT
+    // orderAmount: 1.4,    // USDT
     rewardMultiplier: 2,
     dailyReleaseRate: "1.6%",     // 每日%线性释放
     compoundDailyRate: "1.8%",   // 日复利%
@@ -66,9 +66,9 @@ export const orders = [
   {
     id: 5,
     status: "active",
-    logo: "",
-    // orderAmount: 5000,    // USDT
-    orderAmount: 1.5,    // USDT
+    logo: "5.png",
+    orderAmount: 5000,    // USDT
+    // orderAmount: 1.5,    // USDT
     rewardMultiplier: 2.2,
     dailyReleaseRate: "1.8%",     // 每日%线性释放
     compoundDailyRate: "2%",   // 日复利%
@@ -77,9 +77,9 @@ export const orders = [
   {
     id: 6,
     status: "active",
-    logo: "",
-    // orderAmount: 10000,    // USDT
-    orderAmount: 1.6,    // USDT
+    logo: "6.png",
+    orderAmount: 10000,    // USDT
+    // orderAmount: 1.6,    // USDT
     rewardMultiplier: 2.4,
     dailyReleaseRate: "2%",     // 每日%线性释放
     compoundDailyRate: "2.5%",   // 日复利%
@@ -88,9 +88,9 @@ export const orders = [
   {
     id: 7,
     status: "active",
-    logo: "",
-    // orderAmount: 20000,    // USDT
-    orderAmount: 1.7,    // USDT
+    logo: "/7.png",
+    orderAmount: 20000,    // USDT
+    // orderAmount: 1.7,    // USDT
     rewardMultiplier: 2.6,
     dailyReleaseRate: "2.5%",     // 每日%线性释放
     compoundDailyRate: "3%",   // 日复利%
@@ -99,9 +99,9 @@ export const orders = [
   {
     id: 8,
     status: "active",
-    logo: "",
-    orderAmount: 1.8,    // USDT
-    // orderAmount: 50000,    // USDT
+    logo: "/8.png",
+    // orderAmount: 1.8,    // USDT
+    orderAmount: 50000,    // USDT
     rewardMultiplier: 3,
     dailyReleaseRate: "3%",     // 每日%线性释放
     compoundDailyRate: "4%",   // 日复利%
@@ -277,6 +277,19 @@ export default function IndexPage() {
       const order = orders.find(o => o.id === orderId);
       if (!order) throw new Error('无效的订单ID');
 
+      // 检查订单金额限制
+      if (order.orderAmount >= 2000) {
+        addToast({
+          title: '暂未开放',
+          description: '该档位订单暂未开放，敬请期待',
+          color: 'warning',
+          timeout: 5000
+        });
+        setIsLoading(false);
+        setPendingOrder(null);
+        return;
+      }
+
       // 转换为BigInt（18位小数）
       const usdtAmount = BigInt(order.orderAmount * 1e18);
 
@@ -426,8 +439,15 @@ export default function IndexPage() {
   // 渲染订单卡片
   const renderOrderCard = (order: typeof orders[0]) => (
     <Card className="py-4 bg-transparent border border-purple-500" key={order.id}>
-      <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
+      <CardHeader className="pb-0 pt-2 px-4 flex-row items-center justify-between">
         <span className={title({ color: "violet" })}>{order.orderAmount}&nbsp;USDT</span>
+        <Image
+          alt="Order icon"
+          className="object-cover rounded-xl"
+          src={order.logo}
+          width={58}
+          height={58}
+        />
       </CardHeader>
       <CardBody className="overflow-visible py-2 mt-4">
         {isLoading && pendingOrder === order.id ? (

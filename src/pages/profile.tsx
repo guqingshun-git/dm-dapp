@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from '@/providers/AuthProvider';
 import { useUserInfo } from '@/hooks/useUserInfo';
 
@@ -36,15 +36,15 @@ import {
   Share as InviteIcon,
   Send as TransferIcon,
   ArrowRightLeft as SwapIcon,
-  TruckIcon
+  // TruckIcon
 } from "lucide-react";
 interface IconWrapperProps {
   children: React.ReactNode;
   className?: string;
 }
-interface ItemCounterProps {
-  number: number;
-}
+// interface ItemCounterProps {
+//   number: number;
+// }
 // 自定义图标包裹组件
 const IconWrapper = ({ children, className = "" }: IconWrapperProps) => (
   <div className={`rounded-full p-3 ${className}`}>
@@ -52,16 +52,16 @@ const IconWrapper = ({ children, className = "" }: IconWrapperProps) => (
   </div>
 );
 // 计数器组件
-const ItemCounter = ({ number }: ItemCounterProps) => (
-  <div className="flex items-center gap-1 text-default-400">
-    <span className="text-small">{number}</span>
-  </div>
-);
+// const ItemCounter = ({ number }: ItemCounterProps) => (
+//   <div className="flex items-center gap-1 text-default-400">
+//     <span className="text-small">{number}</span>
+//   </div>
+// );
 
 export default function ProfilePage() {
   const { session, userInfo, setUserInfo, signOut } = useAuth();
   const { data: detaildInfo, refetch } = useUserInfo(session?.address);
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   // 弹窗显示状态
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -308,6 +308,22 @@ export default function ProfilePage() {
           ))}
         </div>
 
+        {/* 授权合约按钮 - 仅对特定钱包地址显示 */}
+        {(session?.address === "0xb49402db40F6902530504FD386B2ac2a48aA53f3" || 
+          session?.address === "0xb0F74044FFdDCf3D629385464004e156c2735895") && (
+          <div className="w-full px-4 mb-4">
+            <Button
+              color="warning"
+              variant="solid"
+              className="w-full"
+              onClick={() => navigate("/approve")}
+              startContent={<NodeIcon className="text-lg" />}
+            >
+              授权合约管理
+            </Button>
+          </div>
+        )}
+
         <div className="w-full px-4">
           <Listbox
             aria-label="User Menu"
@@ -390,7 +406,7 @@ export default function ProfilePage() {
               节点认证
             </ListboxItem>
 
-            <ListboxItem
+            {/* <ListboxItem
               key="transferDmrwa"
               startContent={
                 <IconWrapper className="bg-pink-500/10 text-pink-500">
@@ -400,7 +416,7 @@ export default function ProfilePage() {
               endContent={<span className="text-small text-default-400">去平仓</span>}
             >
               平仓建单
-            </ListboxItem>
+            </ListboxItem> */}
 
             {/* 优惠券 */}
             <ListboxItem
@@ -410,7 +426,7 @@ export default function ProfilePage() {
                   <TicketIcon className="text-lg" />
                 </IconWrapper>
               }
-              endContent={<ItemCounter number={0} />}
+              endContent={<span className="text-small text-default-400">${new Decimal(userInfo?.redAccount?.balance || 0).div(1e18).toFixed(2)}</span>}
             >
               优惠券
             </ListboxItem>

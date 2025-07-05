@@ -128,3 +128,40 @@ export const useWithdrawUSDT = () => {
   const withdraw = useWithdrawToken();
   return (amount: bigint, fee: bigint) => withdraw('withdrawUSDT', amount, fee);
 };
+
+// ====================== 管理员权限方法 ======================
+/** 放弃管理权 */
+export const useRenounceOwnership = () => {
+  const { address } = useAccount();
+  const { writeContractAsync } = useWriteContract();
+
+  return async () => {
+    if (!address) throw new Error('钱包未连接');
+    
+    return writeContractAsync({
+      address: DM_CONTRACT.address as Address,
+      abi: DM_CONTRACT.abi,
+      functionName: 'renounceAdmin',
+      args: [],
+      account: address
+    });
+  };
+};
+
+/** 更新签名钱包地址 */
+export const useUpdateSigner = () => {
+  const { address } = useAccount();
+  const { writeContractAsync } = useWriteContract();
+
+  return async (newSigner: Address) => {
+    if (!address) throw new Error('钱包未连接');
+    
+    return writeContractAsync({
+      address: DM_CONTRACT.address as Address,
+      abi: DM_CONTRACT.abi,
+      functionName: 'updateSigner',
+      args: [newSigner],
+      account: address
+    });
+  };
+};

@@ -253,7 +253,7 @@ export default function CompoundPage() {
             <CardBody className="p-4 pt-0">
               <div className="mb-2">
                 <span className="text-2xl font-bold text-purple-50">
-                  ${isLoadingPrice ? '加载中...' : tokenPrice.toFixed(8)}
+                  ${isLoadingPrice ? '加载中...' : tokenPrice.toFixed(6)}
                 </span>
                 <span className="ml-2 text-xs text-green-400 bg-green-800/30 px-2 py-1 rounded-full">
                   +12%

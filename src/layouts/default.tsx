@@ -33,41 +33,41 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
     { 
       path: "/", 
       label: "首页", 
-      icon: <RocketLaunchIcon className="w-8 h-8 font-bold" />,
+      icon: <RocketLaunchIcon className="w-7 h-7 font-bold" />,
       activeIcon: (
-        <RocketLaunchIcon className="w-8 h-8 text-purple-600 dark:text-purple-400 font-bold" />
+        <RocketLaunchIcon className="w-7 h-7 text-purple-600 dark:text-purple-400 font-bold" />
       )
     },
     { 
       path: "/compound", 
       label: "复利", 
-      icon: <CircleStackIcon className="w-8 h-8" />,
+      icon: <CircleStackIcon className="w-7 h-7" />,
       activeIcon: (
-        <CircleStackIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        <CircleStackIcon className="w-7 h-7 text-purple-600 dark:text-purple-400" />
       )
     },
     { 
       path: "/team", 
       label: "团队", 
-      icon: <UserGroupIcon className="w-8 h-8" />, // 修正为团队图标
+      icon: <UserGroupIcon className="w-7 h-7" />, // 修正为团队图标
       activeIcon: (
-        <UserGroupIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        <UserGroupIcon className="w-7 h-7 text-purple-600 dark:text-purple-400" />
       )
     },
     { 
       path: "/wallet", 
       label: "平仓",  // 建议统一为中文
-      icon: <DocumentCurrencyDollarIcon className="w-8 h-8" />, // 修正为钱包图标
+      icon: <DocumentCurrencyDollarIcon className="w-7 h-7" />, // 修正为钱包图标
       activeIcon: (
-        <DocumentCurrencyDollarIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        <DocumentCurrencyDollarIcon className="w-7 h-7 text-purple-600 dark:text-purple-400" />
       )
     },
     { 
       path: "/profile", 
       label: "我的", 
-      icon: <IdentificationIcon className="w-8 h-8" />,
+      icon: <IdentificationIcon className="w-7 h-7" />,
       activeIcon: (
-        <IdentificationIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        <IdentificationIcon className="w-7 h-7 text-purple-600 dark:text-purple-400" />
       )
     }
   ];
@@ -102,7 +102,15 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
       </main>
       
       {/* 优化后的底部TabBar */}
-      <footer className="sticky bottom-0 left-0 right-0 bg-[#000040] dark:bg-gray-800 border-t border-gray-800 dark:border-gray-700 z-10 shadow-lg">
+      <footer className="sticky bottom-0 left-0 right-0 bg-[#000040] dark:bg-gray-800 border-t border-gray-800 dark:border-gray-700 z-10 shadow-lg"
+         style={{
+      backgroundImage: "url('/bg.jpeg')", // 确保图片在public目录
+      backgroundSize: "cover",
+      // backgroundPosition: "center",
+      // backgroundAttachment: "fixed",
+      // backgroundRepeat: "no-repeat"
+    }}
+      >
         <div className="flex justify-between items-center px-6">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.path;
@@ -147,14 +155,14 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
                   ) : tab.icon}
                 </motion.div>
                 
-                {/* <motion.span
+                <motion.span
                   className="text-xs"
                   animate={{
                     fontWeight: isActive ? 700 : 400
                   }}
                 >
                   {tab.label}
-                </motion.span> */}
+                </motion.span>
               </div>
             );
           })}
