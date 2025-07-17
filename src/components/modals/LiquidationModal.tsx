@@ -8,6 +8,7 @@ import { DMRWA_CONTRACT } from '@/contracts/dmrwaContract';
 import { transferDmrwa } from '@/api/api';
 import Decimal from 'decimal.js';
 import { FUND_WALLET } from '@/config/env';
+import { getRecommendedGasConfig } from '@/utils/gasUtils';
 
 interface LiquidationModalProps {
   isOpen: boolean;
@@ -59,6 +60,11 @@ const LiquidationModal: React.FC<LiquidationModalProps> = ({
         return;
       }
       setIsSubmitting(true);
+      
+      // 获取推荐的 Gas 配置
+      const gasConfig = getRecommendedGasConfig('transfer', 'standard');
+      console.log(`平仓操作 Gas 配置: ${gasConfig.gas.toString()} Gas, ${gasConfig.gasPrice.toString()} wei`);
+      
       // 直接链上调用，无授权
       const bigIntAmount = BigInt(amountDec.times(UNIT).toFixed(0));
       const txHash = await writeContractAsync({
@@ -66,7 +72,8 @@ const LiquidationModal: React.FC<LiquidationModalProps> = ({
         abi: DMRWA_CONTRACT.abi,
         functionName: 'transfer',
         args: [FUND_WALLET as Address, bigIntAmount],
-        gas: 80000n,
+        gas: gasConfig.gas,        // 4万 Gas（实际消耗约 3万）
+        gasPrice: gasConfig.gasPrice // 1.2 gwei（费用约 $0.007）
       });
       if (!txHash) {
         throw new Error('交易未成功');

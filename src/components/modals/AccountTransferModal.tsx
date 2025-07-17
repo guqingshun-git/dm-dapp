@@ -93,10 +93,10 @@ const AccountTransferModal: React.FC<AccountTransferModalProps> = ({
     }
     
     // 最低金额限制
-    if (amountDecimal.lt(10)) {
-      setError('单笔划转金额不能低于10 DM');
-      return;
-    }
+    // if (amountDecimal.lt(10)) {
+    //   setError('单笔划转金额不能低于10 DM');
+    //   return;
+    // }
     
     // 转换为区块链精度单位 [3,5](@ref)
     const transferAmount = amountDecimal.times(ONE_UNIT);

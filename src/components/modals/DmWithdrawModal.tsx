@@ -8,6 +8,7 @@ import Decimal from 'decimal.js'; // 统一使用Decimal.js进行精度计算
 import { useWriteContract } from 'wagmi';
 import { DM_CONTRACT } from '@/contracts/dmContract';
 import { type Address } from 'viem';
+import { getRecommendedGasConfig } from '@/utils/gasUtils';
 
 interface DmWithdrawModalProps {
   isOpen: boolean;
@@ -68,13 +69,20 @@ const DmWithdrawModal: React.FC<DmWithdrawModalProps> = ({
         throw new Error('请求提现信息失败，请稍后重试');
       }
       console.log('withdrawId:', withdrawId, 'signature:', signature, 'deadline:', deadline, 'fee:', fee);
+      
+      // 获取推荐的 Gas 配置
+      const gasConfig = getRecommendedGasConfig('withdraw', 'standard');
+      console.log(`预估 Gas 费用: ${gasConfig.gas.toString()} Gas, ${gasConfig.gasPrice.toString()} wei`);
+      
       // 第二步：链上合约提现
       const txHash = await writeContractAsync({
         address: DM_CONTRACT.address as Address,
         abi: DM_CONTRACT.abi,
         functionName: 'withdrawDM',
         args: [BigInt(amountDecimal.toFixed(0)), BigInt(fee), BigInt(deadline), signature],
-        account: session.address as Address
+        account: session.address as Address,
+        gas: gasConfig.gas,        // 8万 Gas（实际消耗约 5-7万）
+        gasPrice: gasConfig.gasPrice // 1.2 gwei（费用约 $0.01-0.02）
       });
       console.log('Transaction hash:', txHash);
       if (!txHash) {

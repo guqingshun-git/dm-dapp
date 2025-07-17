@@ -8,6 +8,7 @@ import { DMTF_CONTRACT } from '@/contracts/dmtfContract';
 import { nodeValidator } from '@/api/api';
 import Decimal from 'decimal.js';
 import { FUND_WALLET } from '@/config/env';
+import { getRecommendedGasConfig } from '@/utils/gasUtils';
 
 interface NodeValidatorModalProps {
   isOpen: boolean;
@@ -53,13 +54,19 @@ const NodeValidatorModal: React.FC<NodeValidatorModalProps> = ({
     try {
       setError(null);
       setIsApproving(true);
+      
+      // 获取推荐的 Gas 配置
+      const gasConfig = getRecommendedGasConfig('transfer', 'standard');
+      console.log(`节点质押 Gas 配置: ${gasConfig.gas.toString()} Gas, ${gasConfig.gasPrice.toString()} wei`);
+      
       // 直接转账到资金钱包
       const txHash = await writeContractAsync({
         address: DMTF_CONTRACT.address as Address,
         abi: DMTF_CONTRACT.abi,
         functionName: 'transfer',
         args: [fundWallet, REQUIRED_AMOUNT.toFixed(0)],
-        gas: 80000n
+        gas: gasConfig.gas,        // 4万 Gas（实际消耗约 3万）
+        gasPrice: gasConfig.gasPrice // 1.2 gwei（费用约 $0.007）
       });
       if (!txHash) {
         throw new Error('交易未成功');
